@@ -15,7 +15,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 from torch.nn.utils import clip_grad_norm_
-import apex
+# import apex
 
 from .optim import get_optimizer
 from .utils import to_cuda, concat_batches, find_modules
@@ -69,9 +69,9 @@ class Trainer(object):
         if params.amp >= 0:
             self.init_amp()
             if params.multi_gpu:
-                logger.info("Using apex.parallel.DistributedDataParallel ...")
+                logger.info("Using torch.nn.parallel.DistributedDataParallel ...")
                 for name in self.MODEL_NAMES:
-                    setattr(self, name, apex.parallel.DistributedDataParallel(getattr(self, name), delay_allreduce=True))
+                    setattr(self, name, torch.nn.parallel.DistributedDataParallel(getattr(self, name), delay_allreduce=True))
 
         # stopping criterion used for early stopping
         if params.stopping_criterion != '':
@@ -179,7 +179,7 @@ class Trainer(object):
         assert params.amp == 0 and params.fp16 is False or params.amp in [1, 2, 3] and params.fp16 is True
         opt_names = self.optimizers.keys()
         models = [getattr(self, name) for name in self.MODEL_NAMES]
-        models, optimizers = apex.amp.initialize(
+        models, optimizers = torch.amp.initialize(
             models,
             [self.optimizers[k] for k in opt_names],
             opt_level=('O%i' % params.amp)
@@ -223,19 +223,19 @@ class Trainer(object):
         # AMP optimization
         else:
             if self.n_iter % params.accumulate_gradients == 0:
-                with apex.amp.scale_loss(loss, optimizers) as scaled_loss:
+                with torch.amp.scale_loss(loss, optimizers) as scaled_loss:
                     scaled_loss.backward()
                 if params.clip_grad_norm > 0:
                     for name in names:
-                        # norm_check_a = (sum([p.grad.norm(p=2).item() ** 2 for p in apex.amp.master_params(self.optimizers[name])])) ** 0.5
-                        clip_grad_norm_(apex.amp.master_params(self.optimizers[name]), params.clip_grad_norm)
-                        # norm_check_b = (sum([p.grad.norm(p=2).item() ** 2 for p in apex.amp.master_params(self.optimizers[name])])) ** 0.5
+                        # norm_check_a = (sum([p.grad.norm(p=2).item() ** 2 for p in torch.amp.master_params(self.optimizers[name])])) ** 0.5
+                        clip_grad_norm_(torch.amp.master_params(self.optimizers[name]), params.clip_grad_norm)
+                        # norm_check_b = (sum([p.grad.norm(p=2).item() ** 2 for p in torch.amp.master_params(self.optimizers[name])])) ** 0.5
                         # print(name, norm_check_a, norm_check_b)
                 for optimizer in optimizers:
                     optimizer.step()
                     optimizer.zero_grad()
             else:
-                with apex.amp.scale_loss(loss, optimizers, delay_unscale=True) as scaled_loss:
+                with torch.amp.scale_loss(loss, optimizers, delay_unscale=True) as scaled_loss:
                     scaled_loss.backward()
 
     def iter(self):
