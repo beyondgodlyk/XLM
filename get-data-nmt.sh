@@ -66,6 +66,7 @@ DATA_PATH=$PWD/data
 MONO_PATH=$DATA_PATH/mono
 PARA_PATH=$DATA_PATH/para
 PROC_PATH=$DATA_PATH/processed/$SRC-$TGT
+YELP_PATH=$PWD/yelp
 
 # create paths
 mkdir -p $TOOLS_PATH
@@ -223,8 +224,8 @@ done
 
 # concatenate monolingual data files
 if ! [[ -f "$SRC_RAW" ]]; then
-  echo "Concatenating $SRC monolingual data... with Yelp Data"
-  cat $(ls $SRC/news*$SRC* yelp.*| grep -v gz) | head -n $N_MONO > $SRC_RAW
+  echo "Concatenating $SRC monolingual data with Yelp Data"
+  cat $(ls $SRC/news*$SRC* $YELP_PATH/yelp* | grep -v gz) | head -n $N_MONO > $SRC_RAW
 fi
 if ! [[ -f "$TGT_RAW" ]]; then
   echo "Concatenating $TGT monolingual data..."
