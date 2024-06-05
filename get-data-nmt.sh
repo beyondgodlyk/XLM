@@ -306,8 +306,8 @@ if ! [[ -f "$TGT_TRAIN_BPE" ]]; then
   $FASTBPE applybpe $TGT_TRAIN_BPE $TGT_TOK $BPE_CODES
 fi
 echo "BPE codes applied to $SRC in: $SRC_TRAIN_BPE"
-echo "BPE codes applied to $MIXED in: $MIXED_TRAIN_BPE"
-echo "BPE codes applied to $YELP in: $YELP_TRAIN_BPE"
+echo "BPE codes applied to Mixed data in: $MIXED_TRAIN_BPE"
+echo "BPE codes applied to Yelp in: $YELP_TRAIN_BPE"
 echo "BPE codes applied to $TGT in: $TGT_TRAIN_BPE"
 
 # extract source and target vocabulary
@@ -319,8 +319,8 @@ if ! [[ -f "$SRC_VOCAB" && -f "$TGT_VOCAB" ]]; then
   $FASTBPE getvocab $TGT_TRAIN_BPE > $TGT_VOCAB
 fi
 echo "$SRC vocab in: $SRC_VOCAB"
-echo "$MIXED vocab in: $MIXED_VOCAB"
-echo "$YELP vocab in: $YELP_VOCAB"
+echo "Mixed data vocab in: $MIXED_VOCAB"
+echo "Yelp vocab in: $YELP_VOCAB"
 echo "$TGT vocab in: $TGT_VOCAB"
 
 # reload full vocabulary
@@ -406,7 +406,7 @@ echo ""
 echo "===== Data summary"
 echo "Monolingual, and Yelp training data:"
 echo "    $SRC: $SRC_TRAIN_BPE.pth"
-echo "    $YELP: $YELP_TRAIN_BPE.pth"
+echo "    Yelp: $YELP_TRAIN_BPE.pth"
 echo "    $TGT: $TGT_TRAIN_BPE.pth"
 echo "Monolingual validation data:"
 echo "    $SRC: $SRC_VALID_BPE.pth"
