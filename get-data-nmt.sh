@@ -13,7 +13,7 @@ set -e
 #
 N_MONO=300000000  # number of monolingual sentences for each language
 CODES=60000     # number of BPE codes
-N_THREADS=64    # number of threads in data preprocessing
+N_THREADS=32    # number of threads in data preprocessing
 
 
 #
