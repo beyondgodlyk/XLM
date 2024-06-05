@@ -430,7 +430,7 @@ class Trainer(object):
         # define target words to predict
         if params.sample_alpha == 0:
             pred_mask = np.random.rand(slen, bs) <= params.word_pred
-            pred_mask = torch.from_numpy(pred_mask.astype(np.uint8))
+            pred_mask = torch.from_numpy(pred_mask.astype(np.bool_))
         else:
             x_prob = params.mask_scores[x.flatten()]
             n_tgt = math.ceil(params.word_pred * slen * bs)

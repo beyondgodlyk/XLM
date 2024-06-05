@@ -203,7 +203,7 @@ class Evaluator(object):
             if not np.any(to_predict[:lengths[i] - 1, i]):
                 v = rng.randint(1, lengths[i] - 1)
                 to_predict[v, i] = 1
-        pred_mask = torch.from_numpy(to_predict.astype(np.uint8))
+        pred_mask = torch.from_numpy(to_predict.astype(np.bool_))
 
         # generate possible targets / update x input
         _x_real = x[pred_mask]
