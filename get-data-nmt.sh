@@ -13,7 +13,7 @@ set -e
 #
 N_MONO=300000000  # number of monolingual sentences for each language
 CODES=60000     # number of BPE codes
-N_THREADS=16    # number of threads in data preprocessing
+N_THREADS=64    # number of threads in data preprocessing
 
 
 #
@@ -243,8 +243,8 @@ if ! [[ -f "$TGT_RAW" ]]; then
   cat $(ls $TGT/news*$TGT* | grep -v gz) | head -n $N_MONO > $TGT_RAW
 fi
 echo "$SRC monolingual data concatenated in: $SRC_RAW"
-echo "$MIXED data concatenated in: $MIXED_RAW"
-echo "$YELP data concatenated in: $YELP_RAW"
+echo "Mixed data concatenated in: $MIXED_RAW"
+echo "Yelp data concatenated in: $YELP_RAW"
 echo "$TGT monolingual data concatenated in: $TGT_RAW"
 
 # # check number of lines
@@ -267,8 +267,8 @@ fi
 if ! [[ -f "$SRC_TOK" ]]; then
   echo "Tokenize $SRC monolingual data along with mixed and Yelp data..."
   eval "cat $SRC_RAW | $SRC_PREPROCESSING > $SRC_TOK"
-  eval "cat $MIXED_RAW | $SRC_PREPROCESS > $MIXED_TOK"
-  eval "cat $YELP_RAW | $SRC_PREPROCESS > $YELP_TOK"
+  eval "cat $MIXED_RAW | $SRC_PREPROCESSING > $MIXED_TOK"
+  eval "cat $YELP_RAW | $SRC_PREPROCESSING > $YELP_TOK"
 fi
 
 if ! [[ -f "$TGT_TOK" ]]; then
