@@ -236,7 +236,7 @@ if ! [[ -f "$SRC_RAW" ]]; then
   echo "Concatenating $SRC monolingual data with Yelp Data and creating individual files..."
   cat $(ls $SRC/news*$SRC* | grep -v gz) | head -n $N_MONO > $SRC_RAW
   cat $(ls $SRC/news*$SRC* $YELP_PATH/yelp* | grep -v gz) | head -n $N_MONO > $MIXED_RAW
-  cat $(ls $YELP_PATH/yelp*) > $YELP_RAW
+  cat $(ls $YELP_PATH/*detok* | grep -v py) > $YELP_RAW
 fi
 if ! [[ -f "$TGT_RAW" ]]; then
   echo "Concatenating $TGT monolingual data..."
