@@ -296,7 +296,6 @@ def check_data_params(params):
             for splt in ['train', 'valid', 'test']
         } for lang in params.langs if lang in required_mono
     }
-    print(params.mono_dataset)
     for paths in params.mono_dataset.values():
         for p in paths.values():
             if not os.path.isfile(p):
@@ -308,8 +307,8 @@ def check_data_params(params):
     required_para = required_para_train | set([(l2, l3) for _, l2, l3 in params.bt_steps])
     params.para_dataset = {
         (src, tgt): {
-            splt: (os.path.join(params.data_path, '%s%s.%s-%s.%s.pth' % ((splt, src, tgt, src) if not params.domain_adaptive else (DOMAIN, splt, src, tgt))),
-                   os.path.join(params.data_path, '%s%s.%s-%s.%s.pth' % ((splt, src, tgt, tgt) if not params.domain_adaptive else (DOMAIN, splt, src, tgt))))
+            splt: (os.path.join(params.data_path, '%s%s.%s-%s.%s.pth' % (('', splt, src, tgt, src) if not params.domain_adaptive else (DOMAIN, splt, src, tgt, src))),
+                   os.path.join(params.data_path, '%s%s.%s-%s.%s.pth' % (('', splt, src, tgt, tgt) if not params.domain_adaptive else (DOMAIN, splt, src, tgt, tgt))))
             for splt in ['train', 'valid', 'test']
             if splt != 'train' or (src, tgt) in required_para_train or (tgt, src) in required_para_train
         } for src in params.langs for tgt in params.langs
