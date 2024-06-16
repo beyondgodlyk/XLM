@@ -284,10 +284,9 @@ def check_data_params(params):
 
     # Check domain adaptive params
     if params.domain_adaptive:
-        if params.use_yelp_and_foursquare == True:
-            assert params.use_only_yelp == False and params.use_only_foursquare == False
-        else:
-            assert params.use_only_yelp == True or params.use_only_foursquare == True
+        assert params.use_yelp or params.use_foursquare
+    else:
+        assert not params.use_yelp and not params.use_foursquare
 
     # check monolingual datasets
     required_mono = set([l1 for l1, l2 in (params.mlm_steps + params.clm_steps) if l2 is None] + params.ae_steps + params.bt_src_langs)
