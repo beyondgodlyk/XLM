@@ -331,6 +331,5 @@ if __name__ == '__main__':
     check_data_params(params)
     check_model_params(params)
 
-    exit()
     # run experiment
     main(params)

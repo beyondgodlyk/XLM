@@ -142,3 +142,22 @@ echo "Parallel test data:"
 echo "    $SRC: $DOMAIN_PARA_SRC_TEST_BPE.pth"
 echo "    $TGT: $DOMAIN_PARA_TGT_TEST_BPE.pth"
 echo ""
+
+
+: '
+===== Data summary
+Monolingual domain training data:
+    en: /home/hiwi/rohan/Thesis/custom_XLM/XLM/data/processed/en-fr/domain.train.en.pth
+Monolingual domain validation data:
+    en: /home/hiwi/rohan/Thesis/custom_XLM/XLM/data/processed/en-fr/domain.valid.en.pth
+    fr: /home/hiwi/rohan/Thesis/custom_XLM/XLM/data/processed/en-fr/domain.valid.fr.pth
+Monolingual test data:
+    en: /home/hiwi/rohan/Thesis/custom_XLM/XLM/data/processed/en-fr/domain.test.en.pth
+    fr: /home/hiwi/rohan/Thesis/custom_XLM/XLM/data/processed/en-fr/domain.test.fr.pth
+Parallel validation data:
+    en: /home/hiwi/rohan/Thesis/custom_XLM/XLM/data/processed/en-fr/domain.valid.en-fr.en.pth
+    fr: /home/hiwi/rohan/Thesis/custom_XLM/XLM/data/processed/en-fr/domain.valid.en-fr.fr.pth
+Parallel test data:
+    en: /home/hiwi/rohan/Thesis/custom_XLM/XLM/data/processed/en-fr/domain.test.en-fr.en.pth
+    fr: /home/hiwi/rohan/Thesis/custom_XLM/XLM/data/processed/en-fr/domain.test.en-fr.fr.pth
+'
