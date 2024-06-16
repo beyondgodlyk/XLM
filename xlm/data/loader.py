@@ -296,6 +296,7 @@ def check_data_params(params):
             for splt in ['train', 'valid', 'test']
         } for lang in params.langs if lang in required_mono
     }
+    print(params.mono_dataset)
     for paths in params.mono_dataset.values():
         for p in paths.values():
             if not os.path.isfile(p):
