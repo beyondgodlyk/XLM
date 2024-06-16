@@ -12,7 +12,7 @@ import torch
 
 from .dataset import StreamDataset, Dataset, ParallelDataset
 from .dictionary import BOS_WORD, EOS_WORD, PAD_WORD, UNK_WORD, MASK_WORD
-
+DOMAIN = 'domain.'
 
 logger = getLogger()
 
@@ -282,11 +282,18 @@ def check_data_params(params):
     assert len(params.bt_steps) == 0 or not params.encoder_only
     params.bt_src_langs = [l1 for l1, _, _ in params.bt_steps]
 
+    # Check domain adaptive params
+    if params.domain_adaptive:
+        if params.use_yelp_and_foursquare == True:
+            assert params.use_only_yelp == False and params.use_only_foursquare == False
+        else:
+            assert params.use_only_yelp == True or params.use_only_foursquare == True
+
     # check monolingual datasets
     required_mono = set([l1 for l1, l2 in (params.mlm_steps + params.clm_steps) if l2 is None] + params.ae_steps + params.bt_src_langs)
     params.mono_dataset = {
         lang: {
-            splt: os.path.join(params.data_path, '%s.%s.pth' % (splt, lang))
+            splt: os.path.join(params.data_path, '%s%s.%s.pth' % (('', splt, lang) if not params.domain_adaptive else (DOMAIN, splt, lang)))
             for splt in ['train', 'valid', 'test']
         } for lang in params.langs if lang in required_mono
     }
@@ -301,8 +308,8 @@ def check_data_params(params):
     required_para = required_para_train | set([(l2, l3) for _, l2, l3 in params.bt_steps])
     params.para_dataset = {
         (src, tgt): {
-            splt: (os.path.join(params.data_path, '%s.%s-%s.%s.pth' % (splt, src, tgt, src)),
-                   os.path.join(params.data_path, '%s.%s-%s.%s.pth' % (splt, src, tgt, tgt)))
+            splt: (os.path.join(params.data_path, '%s%s.%s-%s.%s.pth' % ((splt, src, tgt, src) if not params.domain_adaptive else (DOMAIN, splt, src, tgt))),
+                   os.path.join(params.data_path, '%s%s.%s-%s.%s.pth' % ((splt, src, tgt, tgt) if not params.domain_adaptive else (DOMAIN, splt, src, tgt))))
             for splt in ['train', 'valid', 'test']
             if splt != 'train' or (src, tgt) in required_para_train or (tgt, src) in required_para_train
         } for src in params.langs for tgt in params.langs

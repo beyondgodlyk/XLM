@@ -212,6 +212,16 @@ def get_parser():
     parser.add_argument("--master_port", type=int, default=-1,
                         help="Master port (for multi-node SLURM jobs)")
 
+    # Domain Adaptive Training of DAE
+    parser.add_argument("--domain_adaptive", type=bool_flag, default=False,
+                        help="Domain Adaptive Training of DAE using Yelp or FourSquare datasets (or both)")
+    parser.add_argument("--use_yelp_and_foursquare", type=bool_flag, default=False,
+                        help="True if both Yelp and FourSquare datasets are used for domain adaptive training")
+    parser.add_argument("--use_only_yelp", type=bool_flag, default=True,
+                        help="True if only Yelp dataset is used for domain adaptive training")
+    parser.add_argument("--use_only_foursquare", type=bool_flag, default=False,
+                        help="True if only FourSquare dataset is used for domain adaptive training")
+    
     return parser
 
 
@@ -323,5 +333,6 @@ if __name__ == '__main__':
     check_data_params(params)
     check_model_params(params)
 
+    exit()
     # run experiment
     main(params)
