@@ -215,12 +215,10 @@ def get_parser():
     # Domain Adaptive Training of DAE
     parser.add_argument("--domain_adaptive", type=bool_flag, default=False,
                         help="Domain Adaptive Training of DAE using Yelp or FourSquare datasets (or both)")
-    parser.add_argument("--use_yelp_and_foursquare", type=bool_flag, default=False,
-                        help="True if both Yelp and FourSquare datasets for EN are used for domain adaptive training")
-    parser.add_argument("--use_only_yelp", type=bool_flag, default=False,
-                        help="True if only Yelp dataset is used for domain adaptive training")
-    parser.add_argument("--use_only_foursquare", type=bool_flag, default=False,
-                        help="True if only FourSquare dataset is used for domain adaptive training")
+    parser.add_argument("--use_yelp", type=bool_flag, default=False,
+                        help="True if Yelp dataset is used for domain adaptive training")
+    parser.add_argument("--use_foursquare", type=bool_flag, default=False,
+                        help="True if FourSquare dataset is used for domain adaptive training")
     
     return parser
 
