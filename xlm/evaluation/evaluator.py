@@ -420,7 +420,7 @@ class EncDecEvaluator(Evaluator):
         Evaluate perplexity and next word prediction accuracy.
         """
         params = self.params
-        assert data_set in ['valid', 'test']
+        assert data_set in ['valid', 'test'] if not params.domain_adaptive else ['valid', 'test', 'domain.valid', 'domain.test']
         assert lang1 in params.langs
         assert lang2 in params.langs
 

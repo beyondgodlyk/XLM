@@ -176,7 +176,7 @@ def load_para_data(params, data):
         assert (src, tgt) not in data['para']
         data['para'][(src, tgt)] = {}
 
-        for splt in ['train', 'valid', 'test'] if params.domain_adaptive else ['train', 'valid', 'test', 'domain.valid', 'domain.test']:
+        for splt in ['train', 'valid', 'test'] if not params.domain_adaptive else ['train', 'valid', 'test', 'domain.valid', 'domain.test']:
 
             # no need to load training data for evaluation
             if splt == 'train' and params.eval_only:
