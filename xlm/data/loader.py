@@ -296,7 +296,7 @@ def check_data_params(params):
         } for lang in params.langs if lang in required_mono
     }
     if params.domain_adaptive:
-        logger.info("Replacing mono_dataset entries with domain adaptive data")
+        logger.info("Replacing mono_dataset entries with domain adaptive data train sets")
         params.mono_dataset = {
             lang: {
                 splt: os.path.join(params.data_path, 'domain.%s.%s.pth' % (splt, lang))
@@ -325,9 +325,9 @@ def check_data_params(params):
         logger.info("Adding para_dataset entries for evaluating on both XLM and domain adaptive valid and test sets")
         params.para_dataset = {
             (src, tgt): {
-                splt: (os.path.join(params.data_path, 'domain.%s.%s-%s.%s.pth' % (splt, src, tgt, src)),
-                       os.path.join(params.data_path, 'domain.%s.%s-%s.%s.pth' % (splt, src, tgt, tgt)))
-                for splt in ['train', 'domain_valid', 'domain_test']
+                splt: (os.path.join(params.data_path, '%s.%s-%s.%s.pth' % (splt, src, tgt, src)),
+                       os.path.join(params.data_path, '%s.%s-%s.%s.pth' % (splt, src, tgt, tgt)))
+                for splt in ['train', 'domain.valid', 'domain.test']
                 if splt != 'train' or (src, tgt) in required_para_train or (tgt, src) in required_para_train
             } for src in params.langs for tgt in params.langs
             if src < tgt and ((src, tgt) in required_para or (tgt, src) in required_para)
