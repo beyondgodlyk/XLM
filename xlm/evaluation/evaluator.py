@@ -103,7 +103,7 @@ class Evaluator(object):
         """
         Create a new iterator for a dataset.
         """
-        assert data_set in ['valid', 'test'] if not self.params.domain_adaptive else ['valid', 'test', 'domain_valid', 'domain_test']
+        assert data_set in ['valid', 'test'] if not self.params.domain_adaptive else ['valid', 'test', 'domain.valid', 'domain.test']
         assert lang1 in self.params.langs
         assert lang2 is None or lang2 in self.params.langs
         assert stream is False or lang2 is None
@@ -154,7 +154,7 @@ class Evaluator(object):
 
             assert lang1 < lang2
 
-            for data_set in ['valid', 'test'] if not params.domain_adaptive else ['valid', 'test', 'domain_valid', 'domain_test']:
+            for data_set in ['valid', 'test'] if not params.domain_adaptive else ['valid', 'test', 'domain.valid', 'domain.test']:
 
                 # define data paths
                 lang1_path = os.path.join(params.hyp_path, 'ref.{0}-{1}.{2}.txt'.format(lang2, lang1, data_set))
@@ -225,7 +225,7 @@ class Evaluator(object):
 
         with torch.no_grad():
 
-            for data_set in ['valid', 'test'] if not params.domain_adaptive else ['valid', 'test', 'domain_valid', 'domain_test']:
+            for data_set in ['valid', 'test'] if not params.domain_adaptive else ['valid', 'test', 'domain.valid', 'domain.test']:
 
                 # causal prediction task (evaluate perplexity and accuracy)
                 for lang1, lang2 in params.clm_steps:

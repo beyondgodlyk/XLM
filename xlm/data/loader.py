@@ -176,7 +176,7 @@ def load_para_data(params, data):
         assert (src, tgt) not in data['para']
         data['para'][(src, tgt)] = {}
 
-        for splt in ['train', 'valid', 'test']:
+        for splt in ['train', 'valid', 'test'] if params.domain_adaptive else ['train', 'valid', 'test', 'domain.valid', 'domain.test']:
 
             # no need to load training data for evaluation
             if splt == 'train' and params.eval_only:
@@ -327,7 +327,7 @@ def check_data_params(params):
             (src, tgt): {
                 splt: (os.path.join(params.data_path, '%s.%s-%s.%s.pth' % (splt, src, tgt, src)),
                        os.path.join(params.data_path, '%s.%s-%s.%s.pth' % (splt, src, tgt, tgt)))
-                for splt in ['train', 'domain.valid', 'domain.test']
+                for splt in ['train', 'valid', 'test', 'domain.valid', 'domain.test']
                 if splt != 'train' or (src, tgt) in required_para_train or (tgt, src) in required_para_train
             } for src in params.langs for tgt in params.langs
             if src < tgt and ((src, tgt) in required_para or (tgt, src) in required_para)
