@@ -65,7 +65,7 @@ echo "Please run get-data-nmt.sh before running this script."
 
 # Below line just checks if the mixed data is already present or not, since it's enough
 if ! [[ -f "$DOMAIN_MIXED_SRC_RAW" ]]; then
-  echo "Creating Yelp and FourSquare, Yelp and FourSquare EN data..."
+  echo "Creating Yelp+FourSquare(mixed), Yelp and FourSquare EN data..."
   cat $(ls $YELP_PATH/sentiment*detok $FOURSQ_PATH/train*en) > $DOMAIN_MIXED_SRC_RAW
   cat $(ls $YELP_PATH/sentiment*detok) > $DOMAIN_YELP_SRC_RAW
   cat $(ls $FOURSQ_PATH/train*en) > $DOMAIN_FOURSQ_SRC_RAW
@@ -167,3 +167,24 @@ echo "Parallel test data:"
 echo "    $SRC: $DOMAIN_PARA_SRC_TEST_BPE.pth"
 echo "    $TGT: $DOMAIN_PARA_TGT_TEST_BPE.pth"
 echo ""
+
+: '
+===== Data summary
+Monolingual domain training data:
+    en: /home/hiwi/rohan/Thesis/XLM/data/processed/en-fr/domain.mixed.train.en.pth
+    en: /home/hiwi/rohan/Thesis/XLM/data/processed/en-fr/domain.yelp.train.en.pth
+    en: /home/hiwi/rohan/Thesis/XLM/data/processed/en-fr/domain.foursq.train.en.pth
+    fr: /home/hiwi/rohan/Thesis/XLM/data/processed/en-fr/domain.foursq.train.fr.pth
+Monolingual domain validation data:
+    en: /home/hiwi/rohan/Thesis/XLM/data/processed/en-fr/domain.valid.en.pth
+    fr: /home/hiwi/rohan/Thesis/XLM/data/processed/en-fr/domain.valid.fr.pth
+Monolingual test data:
+    en: /home/hiwi/rohan/Thesis/XLM/data/processed/en-fr/domain.test.en.pth
+    fr: /home/hiwi/rohan/Thesis/XLM/data/processed/en-fr/domain.test.fr.pth
+Parallel validation data:
+    en: /home/hiwi/rohan/Thesis/XLM/data/processed/en-fr/domain.valid.en-fr.en.pth
+    fr: /home/hiwi/rohan/Thesis/XLM/data/processed/en-fr/domain.valid.en-fr.fr.pth
+Parallel test data:
+    en: /home/hiwi/rohan/Thesis/XLM/data/processed/en-fr/domain.test.en-fr.en.pth
+    fr: /home/hiwi/rohan/Thesis/XLM/data/processed/en-fr/domain.test.en-fr.fr.pth
+'
