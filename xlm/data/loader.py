@@ -13,6 +13,7 @@ import torch
 from .dataset import StreamDataset, Dataset, ParallelDataset
 from .dictionary import BOS_WORD, EOS_WORD, PAD_WORD, UNK_WORD, MASK_WORD
 
+
 logger = getLogger()
 
 
@@ -283,9 +284,15 @@ def check_data_params(params):
 
     # Check domain adaptive params
     if params.domain_adaptive:
-        assert params.use_yelp or params.use_foursquare
+        assert params.use_yelp_EN or params.use_foursquare_EN or params.use_mixed_EN
+        if params.use_mixed_EN:
+            assert not params.use_yelp_EN and not params.use_foursquare_EN
+        if len(params.ae_steps) == 2:
+            assert params.use_foursquare_FR
+        elif len(params.ae_steps) == 1:
+            assert not params.use_foursquare_FR        
     else:
-        assert not params.use_yelp and not params.use_foursquare
+        assert not params.use_yelp_EN and not params.use_foursquare_EN and not params.use_mixed_EN and not params.use_foursquare_FR
 
     # check monolingual datasets
     required_mono = set([l1 for l1, l2 in (params.mlm_steps + params.clm_steps) if l2 is None] + params.ae_steps + params.bt_src_langs)
@@ -296,10 +303,21 @@ def check_data_params(params):
         } for lang in params.langs if lang in required_mono
     }
     if params.domain_adaptive:
-        logger.info("Replacing mono_dataset entries with domain adaptive data train sets")
+        logger.info("Replacing mono_dataset entries with corresponding domain adaptive data train sets")
+        if params.use_yelp_EN:
+            params.train_dataset_type_en = 'yelp.'
+        elif params.use_foursquare_EN:
+            params.train_dataset_type_en = 'foursq.'
+        else:
+            params.train_dataset_type_en = 'mixed.'
+
+        # Hardcoding type of dataset used since only 1 is available in FR
+        params.train_dataset_type_fr = 'foursq.'
+
         params.mono_dataset = {
             lang: {
-                splt: os.path.join(params.data_path, 'domain.%s.%s.pth' % (splt, lang))
+                splt: os.path.join(params.data_path, 'domain.%s%s.%s.pth' % 
+                                   ('' if splt != 'train' else (params.train_dataset_type_en if lang == 'en' else params.train_dataset_type_fr), splt, lang))
                 for splt in ['train', 'valid', 'test']
             } for lang in params.langs if lang in required_mono
         }
