@@ -1,3 +1,5 @@
+set -e
+
 N_THREADS=16    # number of threads in data preprocessing
 
 # Hardcoded the languages
@@ -27,21 +29,21 @@ FASTBPE=$TOOLS_PATH/fastBPE/fast
 BPE_CODES=$PROC_PATH/codes
 FULL_VOCAB=$PROC_PATH/vocab.en-fr
 
-# raw and tokenized files of Yelp and FourSquare
-YELP_RAW=$MONO_PATH/$SRC/yelp.$SRC
-FOURSQ_RAW=$MONO_PATH/$SRC/foursq.$SRC
-YELP_TOK=$YELP_RAW.tok
-FOURSQ_TOK=$FOURSQ_RAW.tok
-
-# raw and tokenized files of concatenated data (lines for FR are commented out)
-DOMAIN_SRC_RAW=$MONO_PATH/$SRC/domain.$SRC
-DOMAIN_SRC_TOK=$MONO_PATH/$SRC/domain.$SRC.tok
-# DOMAIN_TGT_RAW=$MONO_PATH/$TGT/domain.$TGT
-# DOMAIN_TGT_TOK=$MONO_PATH/$TGT/domain.$TGT.tok
+# raw and tokenized files of different datasets
+DOMAIN_MIXED_SRC_RAW=$MONO_PATH/$SRC/domain.mixed.$SRC
+DOMAIN_MIXED_SRC_TOK=$MONO_PATH/$SRC/domain.mixed.$SRC.tok
+DOMAIN_YELP_SRC_RAW=$MONO_PATH/$SRC/domain.yelp.$SRC
+DOMAIN_YELP_SRC_TOK=$MONO_PATH/$SRC/domain.yelp.$SRC.tok
+DOMAIN_FOURSQ_SRC_RAW=$MONO_PATH/$SRC/domain.foursq.$SRC
+DOMAIN_FOURSQ_SRC_TOK=$MONO_PATH/$SRC/domain.foursq.$SRC.tok
+DOMAIN_FOURSQ_TGT_RAW=$MONO_PATH/$TGT/domain.foursq.$TGT
+DOMAIN_FOURSQ_TGT_TOK=$MONO_PATH/$TGT/domain.foursq.$TGT.tok
 
 # Monolingual BPE data
-DOMAIN_SRC_TRAIN_BPE=$PROC_PATH/domain.train.$SRC
-# DOMAIN_TGT_TRAIN_BPE=$PROC_PATH/domain.train.$TGT
+DOMAIN_MIXED_SRC_TRAIN_BPE=$PROC_PATH/domain.mixed.train.$SRC
+DOMAIN_YELP_SRC_TRAIN_BPE=$PROC_PATH/domain.yelp.train.$SRC
+DOMAIN_FOURSQ_SRC_TRAIN_BPE=$PROC_PATH/domain.foursq.train.$SRC
+DOMAIN_FOURSQ_TGT_TRAIN_BPE=$PROC_PATH/domain.foursq.train.$TGT
 DOMAIN_SRC_VALID_BPE=$PROC_PATH/domain.valid.$SRC
 DOMAIN_TGT_VALID_BPE=$PROC_PATH/domain.valid.$TGT
 DOMAIN_SRC_TEST_BPE=$PROC_PATH/domain.test.$SRC
@@ -59,38 +61,59 @@ DOMAIN_PARA_TGT_VALID_BPE=$PROC_PATH/domain.valid.$SRC-$TGT.$TGT
 DOMAIN_PARA_SRC_TEST_BPE=$PROC_PATH/domain.test.$SRC-$TGT.$SRC
 DOMAIN_PARA_TGT_TEST_BPE=$PROC_PATH/domain.test.$SRC-$TGT.$TGT
 
-echo "Please make sure that you have ran get-data-nmt.sh before running this script."
+echo "Please run get-data-nmt.sh before running this script."
 
-if ! [[ -f "$DOMAIN_SRC_RAW" ]]; then
-  echo "Concatenating Yelp and FourSquare EN data..."
-  cat $(ls $YELP_PATH/sentiment*detok $FOURSQ_PATH/train*en) > $DOMAIN_SRC_RAW
+# Below line just checks if the mixed data is already present or not, since it's enough
+if ! [[ -f "$DOMAIN_MIXED_SRC_RAW" ]]; then
+  echo "Creating Yelp and FourSquare, Yelp and FourSquare EN data..."
+  cat $(ls $YELP_PATH/sentiment*detok $FOURSQ_PATH/train*en) > $DOMAIN_MIXED_SRC_RAW
+  cat $(ls $YELP_PATH/sentiment*detok) > $DOMAIN_YELP_SRC_RAW
+  cat $(ls $FOURSQ_PATH/train*en) > $DOMAIN_FOURSQ_SRC_RAW
 fi
 
-# Below lines are commented for FR
-# if ! [[ -f "$DOMAIN_TGT_RAW" ]]; then
-#   echo "Concatenating Yelp and FourSquare EN data..."
-#   cat $(ls $YELP_PATH/sentiment*detok $FOURSQ_PATH/train*en) > $DOMAIN_SRC_RAW
-# fi
+# Below line just checks if the FourSquare data is already present or not, since it's enough
+if ! [[ -f "$DOMAIN_FOURSQ_TGT_RAW" ]]; then
+  echo "Concatenating FourSquare FR data..."
+  cat $(ls $FOURSQ_PATH/train*fr) > $DOMAIN_FOURSQ_TGT_RAW
+fi
 
 SRC_PREPROCESSING="$REPLACE_UNICODE_PUNCT | $NORM_PUNC -l $SRC | $REM_NON_PRINT_CHAR | $TOKENIZER -l $SRC -no-escape -threads $N_THREADS"
 TGT_PREPROCESSING="$REPLACE_UNICODE_PUNCT | $NORM_PUNC -l $TGT | $REM_NON_PRINT_CHAR | $TOKENIZER -l $TGT -no-escape -threads $N_THREADS"
 
 # tokenize training data
-if ! [[ -f "$DOMAIN_SRC_TOK" ]]; then
-  echo "Tokenize Domain-$SRC training data..."
-  eval "cat $DOMAIN_SRC_RAW | $SRC_PREPROCESSING > $DOMAIN_SRC_TOK"
+if ! [[ -f "$DOMAIN_MIXED_SRC_TOK" ]]; then
+  echo "Tokenize EN datasets..."
+  eval "cat $DOMAIN_MIXED_SRC_RAW | $SRC_PREPROCESSING > $DOMAIN_MIXED_SRC_TOK"
+  eval "cat $DOMAIN_YELP_SRC_RAW | $SRC_PREPROCESSING > $DOMAIN_YELP_SRC_TOK"
+  eval "cat $DOMAIN_FOURSQ_SRC_RAW | $SRC_PREPROCESSING > $DOMAIN_FOURSQ_SRC_TOK"
+fi
+if ! [[ -f "$DOMAIN_FOURSQ_TGT_TOK" ]]; then
+  echo "Tokenize FR dataset..."
+  eval "cat $DOMAIN_FOURSQ_TGT_RAW | $TGT_PREPROCESSING > $DOMAIN_FOURSQ_TGT_TOK"
 fi
 
 # apply BPE codes
-if ! [[ -f "$DOMAIN_SRC_TRAIN_BPE" ]]; then
-  echo "Applying BPE codes to Domain-$SRC..."
-  $FASTBPE applybpe $DOMAIN_SRC_TRAIN_BPE $DOMAIN_SRC_TOK $BPE_CODES
+if ! [[ -f "$DOMAIN_MIXED_SRC_TRAIN_BPE" ]]; then
+  echo "Applying BPE codes to EN tokenized datasets..."
+  $FASTBPE applybpe $DOMAIN_MIXED_SRC_TRAIN_BPE $DOMAIN_MIXED_SRC_TOK $BPE_CODES
+  $FASTBPE applybpe $DOMAIN_YELP_SRC_TRAIN_BPE $DOMAIN_YELP_SRC_TOK $BPE_CODES
+  $FASTBPE applybpe $DOMAIN_FOURSQ_SRC_TRAIN_BPE $DOMAIN_FOURSQ_SRC_TOK $BPE_CODES
+fi
+if ! [[ -f "$DOMAIN_FOURSQ_TGT_TRAIN_BPE" ]]; then
+  echo "Applying BPE codes to FR datasets..."
+  $FASTBPE applybpe $DOMAIN_FOURSQ_TGT_TRAIN_BPE $DOMAIN_FOURSQ_TGT_TOK $BPE_CODES
 fi
 
 # binarize data
-if ! [[ -f "$DOMAIN_SRC_TRAIN_BPE.pth" ]]; then
-  echo "Binarizing Domain-$SRC training data..."
-  $MAIN_PATH/preprocess.py $FULL_VOCAB $DOMAIN_SRC_TRAIN_BPE
+if ! [[ -f "$DOMAIN_MIXED_SRC_TRAIN_BPE.pth" ]]; then
+  echo "Binarizing EN training data..."
+  $MAIN_PATH/preprocess.py $FULL_VOCAB $DOMAIN_MIXED_SRC_TRAIN_BPE
+  $MAIN_PATH/preprocess.py $FULL_VOCAB $DOMAIN_YELP_SRC_TRAIN_BPE
+  $MAIN_PATH/preprocess.py $FULL_VOCAB $DOMAIN_FOURSQ_SRC_TRAIN_BPE
+fi
+if ! [[ -f "$DOMAIN_FOURSQ_TGT_TRAIN_BPE.pth" ]]; then
+  echo "Binarizing FR training data..."
+  $MAIN_PATH/preprocess.py $FULL_VOCAB $DOMAIN_FOURSQ_TGT_TRAIN_BPE
 fi
 
 echo "Tokenizing valid and test data..."
@@ -127,8 +150,10 @@ ln -sf $DOMAIN_PARA_TGT_TEST_BPE.pth  $DOMAIN_TGT_TEST_BPE.pth
 echo ""
 echo "===== Data summary"
 echo "Monolingual domain training data:"
-echo "    $SRC: $DOMAIN_SRC_TRAIN_BPE.pth"
-# echo "    $TGT: $DOMAIN_TGT_TRAIN_BPE.pth"
+echo "    $SRC: $DOMAIN_MIXED_SRC_TRAIN_BPE.pth"
+echo "    $SRC: $DOMAIN_YELP_SRC_TRAIN_BPE.pth"
+echo "    $SRC: $DOMAIN_FOURSQ_SRC_TRAIN_BPE.pth"
+echo "    $TGT: $DOMAIN_FOURSQ_TGT_TRAIN_BPE.pth"
 echo "Monolingual domain validation data:"
 echo "    $SRC: $DOMAIN_SRC_VALID_BPE.pth"
 echo "    $TGT: $DOMAIN_TGT_VALID_BPE.pth"
@@ -142,22 +167,3 @@ echo "Parallel test data:"
 echo "    $SRC: $DOMAIN_PARA_SRC_TEST_BPE.pth"
 echo "    $TGT: $DOMAIN_PARA_TGT_TEST_BPE.pth"
 echo ""
-
-
-: '
-===== Data summary
-Monolingual domain training data:
-    en: /home/hiwi/rohan/Thesis/custom_XLM/XLM/data/processed/en-fr/domain.train.en.pth
-Monolingual domain validation data:
-    en: /home/hiwi/rohan/Thesis/custom_XLM/XLM/data/processed/en-fr/domain.valid.en.pth
-    fr: /home/hiwi/rohan/Thesis/custom_XLM/XLM/data/processed/en-fr/domain.valid.fr.pth
-Monolingual test data:
-    en: /home/hiwi/rohan/Thesis/custom_XLM/XLM/data/processed/en-fr/domain.test.en.pth
-    fr: /home/hiwi/rohan/Thesis/custom_XLM/XLM/data/processed/en-fr/domain.test.fr.pth
-Parallel validation data:
-    en: /home/hiwi/rohan/Thesis/custom_XLM/XLM/data/processed/en-fr/domain.valid.en-fr.en.pth
-    fr: /home/hiwi/rohan/Thesis/custom_XLM/XLM/data/processed/en-fr/domain.valid.en-fr.fr.pth
-Parallel test data:
-    en: /home/hiwi/rohan/Thesis/custom_XLM/XLM/data/processed/en-fr/domain.test.en-fr.en.pth
-    fr: /home/hiwi/rohan/Thesis/custom_XLM/XLM/data/processed/en-fr/domain.test.en-fr.fr.pth
-'
