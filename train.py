@@ -219,7 +219,7 @@ def get_parser():
                         help="True if Yelp EN dataset is used for domain adaptive training")
     parser.add_argument("--use_foursquare_EN", type=bool_flag, default=False,
                         help="True if FourSquare EN dataset is used for domain adaptive training")
-    parser.add_argument("-use_mixed_EN", type=bool_flag, default=False,
+    parser.add_argument("--use_mixed_EN", type=bool_flag, default=False,
                         help="True if both Yelp and FourSquare datasets are used for domain adaptive training")
     parser.add_argument("--use_foursquare_FR", type=bool_flag, default=False,
                         help="True if FourSquare FR dataset is used for domain adaptive training")
