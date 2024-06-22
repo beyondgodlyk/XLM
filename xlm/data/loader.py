@@ -284,15 +284,15 @@ def check_data_params(params):
 
     # Check domain adaptive params
     if params.domain_adaptive:
-        assert params.use_yelp_EN or params.use_foursquare_EN or params.use_mixed_EN
+        assert params.use_downsampled_yelp_EN or params.use_foursquare_EN or params.use_mixed_EN
         if params.use_mixed_EN:
-            assert not params.use_yelp_EN and not params.use_foursquare_EN
+            assert not params.use_downsampled_yelp_EN and not params.use_foursquare_EN
         if len(params.ae_steps) == 2:
             assert params.use_foursquare_FR
         elif len(params.ae_steps) == 1:
             assert not params.use_foursquare_FR        
     else:
-        assert not params.use_yelp_EN and not params.use_foursquare_EN and not params.use_mixed_EN and not params.use_foursquare_FR
+        assert not params.use_downsampled_yelp_EN and not params.use_foursquare_EN and not params.use_mixed_EN and not params.use_foursquare_FR
 
     # check monolingual datasets
     required_mono = set([l1 for l1, l2 in (params.mlm_steps + params.clm_steps) if l2 is None] + params.ae_steps + params.bt_src_langs)
@@ -304,8 +304,8 @@ def check_data_params(params):
     }
     if params.domain_adaptive:
         logger.info("Replacing mono_dataset entries with corresponding domain adaptive data train sets")
-        if params.use_yelp_EN:
-            params.train_dataset_type_en = 'yelp.'
+        if params.use_downsampled_yelp_EN:
+            params.train_dataset_type_en = 'yelp_downsampled.'
         elif params.use_foursquare_EN:
             params.train_dataset_type_en = 'foursq.'
         else:
