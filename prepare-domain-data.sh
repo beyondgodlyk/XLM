@@ -66,8 +66,8 @@ echo "Please run get-data-nmt.sh before running this script."
 # Below line just checks if the mixed data is already present or not, since it's enough
 if ! [[ -f "$DOMAIN_MIXED_SRC_RAW" ]]; then
   echo "Creating Yelp+FourSquare(mixed), Yelp and FourSquare EN data..."
-  cat $(ls $YELP_PATH/sentiment*detok $FOURSQ_PATH/train*en) > $DOMAIN_MIXED_SRC_RAW
-  cat $(ls $YELP_PATH/sentiment*detok) > $DOMAIN_YELP_SRC_RAW
+  cat $(ls $YELP_PATH/sentiment.train*detok $FOURSQ_PATH/train*en) > $DOMAIN_MIXED_SRC_RAW
+  cat $(ls $YELP_PATH/sentiment.train*detok) > $DOMAIN_YELP_SRC_RAW
   cat $(ls $FOURSQ_PATH/train*en) > $DOMAIN_FOURSQ_SRC_RAW
 fi
 
