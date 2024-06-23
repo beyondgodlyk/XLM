@@ -224,6 +224,9 @@ def get_parser():
     parser.add_argument("--use_foursquare_FR", type=bool_flag, default=False,
                         help="True if FourSquare FR dataset is used for domain adaptive training")
     
+    parser.add_argument("--scaling_rate_of_LR_for_EN", type=int, default=1,
+                        help="Scale the learning rate for EN dataset compared to FR dataset")
+    
     return parser
 
 
