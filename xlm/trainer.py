@@ -857,7 +857,7 @@ class EncDecTrainer(Trainer):
         # loss
         _, loss = self.decoder('predict', tensor=dec2, pred_mask=pred_mask, y=y, get_scores=False)
         self.stats[('AE-%s' % lang1) if lang1 == lang2 else ('MT-%s-%s' % (lang1, lang2))].append(loss.item())
-        loss = (lambda_coeff if lang1 == 'fr' else params.scaling_rate_of_LR_for_EN * lambda_coeff) * loss
+        loss = (lambda_coeff if lang1 == 'fr' else params.scaling_rate_of_lambda_for_EN * lambda_coeff) * loss
 
         # optimize
         self.optimize(loss)
@@ -924,7 +924,7 @@ class EncDecTrainer(Trainer):
         # loss
         _, loss = self.decoder('predict', tensor=dec3, pred_mask=pred_mask, y=y1, get_scores=False)
         self.stats[('BT-%s-%s-%s' % (lang1, lang2, lang3))].append(loss.item())
-        loss = lambda_coeff * loss
+        loss = (lambda_coeff if lang1 == 'fr' else params.scaling_rate_of_lambda_for_EN * lambda_coeff) * loss
 
         # optimize
         self.optimize(loss)
