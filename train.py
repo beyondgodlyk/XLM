@@ -215,15 +215,24 @@ def get_parser():
     # Domain Adaptive Training of DAE
     parser.add_argument("--domain_adaptive", type=bool_flag, default=False,
                         help="Domain Adaptive Training of DAE using Yelp or FourSquare datasets (or both)")
+    # Datasets for EN
     parser.add_argument("--use_downsampled_yelp_EN", type=bool_flag, default=False,
                         help="True if downsampled Yelp EN dataset is used for domain adaptive training")
     parser.add_argument("--use_foursquare_EN", type=bool_flag, default=False,
                         help="True if FourSquare EN dataset is used for domain adaptive training")
     parser.add_argument("--use_mixed_EN", type=bool_flag, default=False,
                         help="True if both Yelp and FourSquare datasets are used for domain adaptive training")
+    
+    parser.add_argument("--use_foursquare_EN_lowercase", type=bool_flag, default=False,
+                        help="True if FourSquare EN dataset with lowercased text is used for domain adaptive training")
+    parser.add_argument("--use_downsampled_yelp_EN_lowercase", type=bool_flag, default=False,
+                        help="True if downsampled Yelp EN dataset with lowercased text is used for domain adaptive training")
+    # Datasets for FR
     parser.add_argument("--use_foursquare_FR", type=bool_flag, default=False,
                         help="True if FourSquare FR dataset is used for domain adaptive training")
-    
+    parser.add_argument("--use_foursquare_FR_lowercase", type=bool_flag, default=False,
+                        help="True if FourSquare FR dataset with lowercased text is used for domain adaptive training")
+
     parser.add_argument("--scaling_rate_of_lambda_for_EN", type=float, default=1,
                         help="Scale the learning rate for EN dataset compared to FR dataset")
     

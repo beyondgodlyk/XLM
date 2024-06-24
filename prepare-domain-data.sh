@@ -39,6 +39,14 @@ DOMAIN_FOURSQ_SRC_TOK=$MONO_PATH/$SRC/domain.foursq.$SRC.tok
 DOMAIN_FOURSQ_TGT_RAW=$MONO_PATH/$TGT/domain.foursq.$TGT
 DOMAIN_FOURSQ_TGT_TOK=$MONO_PATH/$TGT/domain.foursq.$TGT.tok
 
+# Lowercased datasets
+DOMAIN_FOURSQ_LOWERCASED_SRC_RAW=$MONO_PATH/$SRC/domain.foursq_lowercased.$SRC
+DOMAIN_FOURSQ_LOWERCASED_SRC_TOK=$MONO_PATH/$SRC/domain.foursq_lowercased.$SRC.tok
+DOMAIN_YELP_LOWERCASED_SRC_RAW=$MONO_PATH/$SRC/domain.yelp_lowercased.$SRC
+DOMAIN_YELP_LOWERCASED_SRC_TOK=$MONO_PATH/$SRC/domain.yelp_lowercased.$SRC.tok
+DOMAIN_FOURSQ_LOWERCASED_TGT_RAW=$MONO_PATH/$TGT/domain.foursq_lowercased.$TGT
+DOMAIN_FOURSQ_LOWERCASED_TGT_TOK=$MONO_PATH/$TGT/domain.foursq_lowercased.$TGT.tok
+
 # Monolingual BPE data
 DOMAIN_MIXED_SRC_TRAIN_BPE=$PROC_PATH/domain.mixed.train.$SRC
 DOMAIN_YELP_SRC_TRAIN_BPE=$PROC_PATH/domain.yelp.train.$SRC
@@ -49,11 +57,22 @@ DOMAIN_TGT_VALID_BPE=$PROC_PATH/domain.valid.$TGT
 DOMAIN_SRC_TEST_BPE=$PROC_PATH/domain.test.$SRC
 DOMAIN_TGT_TEST_BPE=$PROC_PATH/domain.test.$TGT
 
+# Lowercased datasets BPE data
+DOMAIN_FOURSQ_LOWERCASED_SRC_TRAIN_BPE=$PROC_PATH/domain.foursq_lowercased.train.$SRC
+DOMAIN_YELP_LOWERCASED_SRC_TRAIN_BPE=$PROC_PATH/domain.yelp_lowercased.train.$SRC
+DOMAIN_FOURSQ_LOWERCASED_TGT_TRAIN_BPE=$PROC_PATH/domain.foursq_lowercased.train.$TGT
+
 # Parallel tokenized data
 DOMAIN_PARA_SRC_VALID_TOK=$FOURSQ_PATH/valid.$SRC.tok
 DOMAIN_PARA_TGT_VALID_TOK=$FOURSQ_PATH/valid.$TGT.tok
 DOMAIN_PARA_SRC_TEST_TOK=$FOURSQ_PATH/test.$SRC.tok
 DOMAIN_PARA_TGT_TEST_TOK=$FOURSQ_PATH/test.$TGT.tok
+
+# Lowercased datasets parallel tokenized data
+DOMAIN_PARA_LOWERCASED_SRC_VALID_TOK=$FOURSQ_PATH/lowercased_valid.$SRC.tok
+DOMAIN_PARA_LOWERCASED_TGT_VALID_TOK=$FOURSQ_PATH/lowercased_valid.$TGT.tok
+DOMAIN_PARA_LOWERCASED_SRC_TEST_TOK=$FOURSQ_PATH/lowercased_test.$SRC.tok
+DOMAIN_PARA_LOWERCASED_TGT_TEST_TOK=$FOURSQ_PATH/lowercased_test.$TGT.tok
 
 # Parallel BPE data
 DOMAIN_PARA_SRC_VALID_BPE=$PROC_PATH/domain.valid.$SRC-$TGT.$SRC
@@ -61,7 +80,15 @@ DOMAIN_PARA_TGT_VALID_BPE=$PROC_PATH/domain.valid.$SRC-$TGT.$TGT
 DOMAIN_PARA_SRC_TEST_BPE=$PROC_PATH/domain.test.$SRC-$TGT.$SRC
 DOMAIN_PARA_TGT_TEST_BPE=$PROC_PATH/domain.test.$SRC-$TGT.$TGT
 
+# Lowercased datasets parallel BPE data
+DOMAIN_PARA_LOWERCASED_SRC_VALID_BPE=$PROC_PATH/domain_lowercased.valid.$SRC-$TGT.$SRC
+DOMAIN_PARA_LOWERCASED_TGT_VALID_BPE=$PROC_PATH/domain_lowercased.valid.$SRC-$TGT.$TGT
+DOMAIN_PARA_LOWERCASED_SRC_TEST_BPE=$PROC_PATH/domain_lowercased.test.$SRC-$TGT.$SRC
+DOMAIN_PARA_LOWERCASED_TGT_TEST_BPE=$PROC_PATH/domain_lowercased.test.$SRC-$TGT.$TGT
+
+
 echo "Please run get-data-nmt.sh before running this script."
+
 
 # Below line just checks if the mixed data is already present or not, since it's enough
 if ! [[ -f "$DOMAIN_MIXED_SRC_RAW" ]]; then
@@ -69,16 +96,24 @@ if ! [[ -f "$DOMAIN_MIXED_SRC_RAW" ]]; then
   cat $(ls $YELP_PATH/sentiment.train*detok $FOURSQ_PATH/train*en) > $DOMAIN_MIXED_SRC_RAW
   cat $(ls $YELP_PATH/sentiment.train*detok) > $DOMAIN_YELP_SRC_RAW
   cat $(ls $FOURSQ_PATH/train*en) > $DOMAIN_FOURSQ_SRC_RAW
+  
+  echo "Creating lowercased EN data..."
+  $MAIN_PATH/convert_to_lowercase.py $DOMAIN_FOURSQ_SRC_RAW > $DOMAIN_FOURSQ_LOWERCASED_SRC_RAW
+  $MAIN_PATH/convert_to_lowercase.py $DOMAIN_YELP_SRC_RAW > $DOMAIN_YELP_LOWERCASED_SRC_RAW
 fi
 
 # Below line just checks if the FourSquare data is already present or not, since it's enough
 if ! [[ -f "$DOMAIN_FOURSQ_TGT_RAW" ]]; then
   echo "Concatenating FourSquare FR data..."
   cat $(ls $FOURSQ_PATH/train*fr) > $DOMAIN_FOURSQ_TGT_RAW
+
+  echo "Creating lowercased FR data..."
+  $MAIN_PATH/convert_to_lowercase.py $DOMAIN_FOURSQ_TGT_RAW > $DOMAIN_FOURSQ_LOWERCASED_TGT_RAW
 fi
 
 SRC_PREPROCESSING="$REPLACE_UNICODE_PUNCT | $NORM_PUNC -l $SRC | $REM_NON_PRINT_CHAR | $TOKENIZER -l $SRC -no-escape -threads $N_THREADS"
 TGT_PREPROCESSING="$REPLACE_UNICODE_PUNCT | $NORM_PUNC -l $TGT | $REM_NON_PRINT_CHAR | $TOKENIZER -l $TGT -no-escape -threads $N_THREADS"
+
 
 # tokenize training data
 if ! [[ -f "$DOMAIN_MIXED_SRC_TOK" ]]; then
@@ -86,11 +121,17 @@ if ! [[ -f "$DOMAIN_MIXED_SRC_TOK" ]]; then
   eval "cat $DOMAIN_MIXED_SRC_RAW | $SRC_PREPROCESSING > $DOMAIN_MIXED_SRC_TOK"
   eval "cat $DOMAIN_YELP_SRC_RAW | $SRC_PREPROCESSING > $DOMAIN_YELP_SRC_TOK"
   eval "cat $DOMAIN_FOURSQ_SRC_RAW | $SRC_PREPROCESSING > $DOMAIN_FOURSQ_SRC_TOK"
+
+  eval "cat $DOMAIN_FOURSQ_LOWERCASED_SRC_RAW | $SRC_PREPROCESSING > $DOMAIN_FOURSQ_LOWERCASED_SRC_TOK"
+  eval "cat $DOMAIN_YELP_LOWERCASED_SRC_RAW | $SRC_PREPROCESSING > $DOMAIN_YELP_LOWERCASED_SRC_TOK"
 fi
 if ! [[ -f "$DOMAIN_FOURSQ_TGT_TOK" ]]; then
   echo "Tokenize FR dataset..."
   eval "cat $DOMAIN_FOURSQ_TGT_RAW | $TGT_PREPROCESSING > $DOMAIN_FOURSQ_TGT_TOK"
+
+  eval "cat $DOMAIN_FOURSQ_LOWERCASED_TGT_RAW | $TGT_PREPROCESSING > $DOMAIN_FOURSQ_LOWERCASED_TGT_TOK"
 fi
+
 
 # apply BPE codes
 if ! [[ -f "$DOMAIN_MIXED_SRC_TRAIN_BPE" ]]; then
@@ -98,11 +139,17 @@ if ! [[ -f "$DOMAIN_MIXED_SRC_TRAIN_BPE" ]]; then
   $FASTBPE applybpe $DOMAIN_MIXED_SRC_TRAIN_BPE $DOMAIN_MIXED_SRC_TOK $BPE_CODES
   $FASTBPE applybpe $DOMAIN_YELP_SRC_TRAIN_BPE $DOMAIN_YELP_SRC_TOK $BPE_CODES
   $FASTBPE applybpe $DOMAIN_FOURSQ_SRC_TRAIN_BPE $DOMAIN_FOURSQ_SRC_TOK $BPE_CODES
+
+  $FASTBPE applybpe $DOMAIN_FOURSQ_LOWERCASED_SRC_TRAIN_BPE $DOMAIN_FOURSQ_LOWERCASED_SRC_TOK $BPE_CODES
+  $FASTBPE applybpe $DOMAIN_YELP_LOWERCASED_SRC_TRAIN_BPE $DOMAIN_YELP_LOWERCASED_SRC_TOK $BPE_CODES
 fi
 if ! [[ -f "$DOMAIN_FOURSQ_TGT_TRAIN_BPE" ]]; then
   echo "Applying BPE codes to FR datasets..."
   $FASTBPE applybpe $DOMAIN_FOURSQ_TGT_TRAIN_BPE $DOMAIN_FOURSQ_TGT_TOK $BPE_CODES
+
+  $FASTBPE applybpe $DOMAIN_FOURSQ_LOWERCASED_TGT_TRAIN_BPE $DOMAIN_FOURSQ_LOWERCASED_TGT_TOK $BPE_CODES
 fi
+
 
 # binarize data
 if ! [[ -f "$DOMAIN_MIXED_SRC_TRAIN_BPE.pth" ]]; then
@@ -110,11 +157,24 @@ if ! [[ -f "$DOMAIN_MIXED_SRC_TRAIN_BPE.pth" ]]; then
   $MAIN_PATH/preprocess.py $FULL_VOCAB $DOMAIN_MIXED_SRC_TRAIN_BPE
   $MAIN_PATH/preprocess.py $FULL_VOCAB $DOMAIN_YELP_SRC_TRAIN_BPE
   $MAIN_PATH/preprocess.py $FULL_VOCAB $DOMAIN_FOURSQ_SRC_TRAIN_BPE
+
+  $MAIN_PATH/preprocess.py $FULL_VOCAB $DOMAIN_FOURSQ_LOWERCASED_SRC_TRAIN_BPE
+  $MAIN_PATH/preprocess.py $FULL_VOCAB $DOMAIN_YELP_LOWERCASED_SRC_TRAIN_BPE
 fi
 if ! [[ -f "$DOMAIN_FOURSQ_TGT_TRAIN_BPE.pth" ]]; then
   echo "Binarizing FR training data..."
   $MAIN_PATH/preprocess.py $FULL_VOCAB $DOMAIN_FOURSQ_TGT_TRAIN_BPE
+
+  $MAIN_PATH/preprocess.py $FULL_VOCAB $DOMAIN_FOURSQ_LOWERCASED_TGT_TRAIN_BPE
 fi
+
+
+echo "Creating lowercase FourSquare validation and test data..."
+$MAIN_PATH/convert_to_lowercase.py $FOURSQ_PATH/valid.$SRC > $FOURSQ_PATH/lowercased_valid.$SRC
+$MAIN_PATH/convert_to_lowercase.py $FOURSQ_PATH/valid.$TGT > $FOURSQ_PATH/lowercased_valid.$TGT
+$MAIN_PATH/convert_to_lowercase.py $FOURSQ_PATH/test.$SRC > $FOURSQ_PATH/lowercased_test.$SRC
+$MAIN_PATH/convert_to_lowercase.py $FOURSQ_PATH/test.$TGT > $FOURSQ_PATH/lowercased_test.$TGT
+
 
 echo "Tokenizing valid and test data..."
 eval "cat $FOURSQ_PATH/valid.$SRC | $SRC_PREPROCESSING > $DOMAIN_PARA_SRC_VALID_TOK"
@@ -122,11 +182,23 @@ eval "cat $FOURSQ_PATH/valid.$TGT | $TGT_PREPROCESSING > $DOMAIN_PARA_TGT_VALID_
 eval "cat $FOURSQ_PATH/test.$SRC  | $SRC_PREPROCESSING > $DOMAIN_PARA_SRC_TEST_TOK"
 eval "cat $FOURSQ_PATH/test.$TGT  | $TGT_PREPROCESSING > $DOMAIN_PARA_TGT_TEST_TOK"
 
+eval "cat $FOURSQ_PATH/lowercased_valid.$SRC | $SRC_PREPROCESSING > $DOMAIN_PARA_LOWERCASED_SRC_VALID_TOK"
+eval "cat $FOURSQ_PATH/lowercased_valid.$TGT | $TGT_PREPROCESSING > $DOMAIN_PARA_LOWERCASED_TGT_VALID_TOK"
+eval "cat $FOURSQ_PATH/lowercased_test.$SRC  | $SRC_PREPROCESSING > $DOMAIN_PARA_LOWERCASED_SRC_TEST_TOK"
+eval "cat $FOURSQ_PATH/lowercased_test.$TGT  | $TGT_PREPROCESSING > $DOMAIN_PARA_LOWERCASED_TGT_TEST_TOK"
+
+
 echo "Applying BPE to valid and test files..."
 $FASTBPE applybpe $DOMAIN_PARA_SRC_VALID_BPE $DOMAIN_PARA_SRC_VALID_TOK $BPE_CODES $SRC_VOCAB
 $FASTBPE applybpe $DOMAIN_PARA_TGT_VALID_BPE $DOMAIN_PARA_TGT_VALID_TOK $BPE_CODES $TGT_VOCAB
 $FASTBPE applybpe $DOMAIN_PARA_SRC_TEST_BPE  $DOMAIN_PARA_SRC_TEST_TOK  $BPE_CODES $SRC_VOCAB
 $FASTBPE applybpe $DOMAIN_PARA_TGT_TEST_BPE  $DOMAIN_PARA_TGT_TEST_TOK  $BPE_CODES $TGT_VOCAB
+
+$FASTBPE applybpe $DOMAIN_PARA_LOWERCASED_SRC_VALID_BPE $DOMAIN_PARA_LOWERCASED_SRC_VALID_TOK $BPE_CODES $SRC_VOCAB
+$FASTBPE applybpe $DOMAIN_PARA_LOWERCASED_TGT_VALID_BPE $DOMAIN_PARA_LOWERCASED_TGT_VALID_TOK $BPE_CODES $TGT_VOCAB
+$FASTBPE applybpe $DOMAIN_PARA_LOWERCASED_SRC_TEST_BPE  $DOMAIN_PARA_LOWERCASED_SRC_TEST_TOK  $BPE_CODES $SRC_VOCAB
+$FASTBPE applybpe $DOMAIN_PARA_LOWERCASED_TGT_TEST_BPE  $DOMAIN_PARA_LOWERCASED_TGT_TEST_TOK  $BPE_CODES $TGT_VOCAB
+
 
 echo "Binarizing data..."
 rm -f $DOMAIN_PARA_SRC_VALID_BPE.pth $DOMAIN_PARA_TGT_VALID_BPE.pth $DOMAIN_PARA_SRC_TEST_BPE.pth $DOMAIN_PARA_TGT_TEST_BPE.pth
@@ -134,6 +206,12 @@ $MAIN_PATH/preprocess.py $FULL_VOCAB $DOMAIN_PARA_SRC_VALID_BPE
 $MAIN_PATH/preprocess.py $FULL_VOCAB $DOMAIN_PARA_TGT_VALID_BPE
 $MAIN_PATH/preprocess.py $FULL_VOCAB $DOMAIN_PARA_SRC_TEST_BPE
 $MAIN_PATH/preprocess.py $FULL_VOCAB $DOMAIN_PARA_TGT_TEST_BPE
+
+rm -f $DOMAIN_PARA_LOWERCASED_SRC_VALID_BPE.pth $DOMAIN_PARA_LOWERCASED_TGT_VALID_BPE.pth $DOMAIN_PARA_LOWERCASED_SRC_TEST_BPE.pth $DOMAIN_PARA_LOWERCASED_TGT_TEST_BPE.pth
+$MAIN_PATH/preprocess.py $FULL_VOCAB $DOMAIN_PARA_LOWERCASED_SRC_VALID_BPE
+$MAIN_PATH/preprocess.py $FULL_VOCAB $DOMAIN_PARA_LOWERCASED_TGT_VALID_BPE
+$MAIN_PATH/preprocess.py $FULL_VOCAB $DOMAIN_PARA_LOWERCASED_SRC_TEST_BPE
+$MAIN_PATH/preprocess.py $FULL_VOCAB $DOMAIN_PARA_LOWERCASED_TGT_TEST_BPE
 
 #
 # Link monolingual validation and test data to parallel data
@@ -154,6 +232,10 @@ echo "    $SRC: $DOMAIN_MIXED_SRC_TRAIN_BPE.pth"
 echo "    $SRC: $DOMAIN_YELP_SRC_TRAIN_BPE.pth"
 echo "    $SRC: $DOMAIN_FOURSQ_SRC_TRAIN_BPE.pth"
 echo "    $TGT: $DOMAIN_FOURSQ_TGT_TRAIN_BPE.pth"
+echo "Monolingual domain training data (lowercased):"
+echo "    $SRC: $DOMAIN_FOURSQ_LOWERCASED_SRC_TRAIN_BPE.pth"
+echo "    $SRC: $DOMAIN_YELP_LOWERCASED_SRC_TRAIN_BPE.pth"
+echo "    $TGT: $DOMAIN_FOURSQ_LOWERCASED_TGT_TRAIN_BPE.pth"
 echo "Monolingual domain validation data:"
 echo "    $SRC: $DOMAIN_SRC_VALID_BPE.pth"
 echo "    $TGT: $DOMAIN_TGT_VALID_BPE.pth"
@@ -163,9 +245,15 @@ echo "    $TGT: $DOMAIN_TGT_TEST_BPE.pth"
 echo "Parallel validation data:"
 echo "    $SRC: $DOMAIN_PARA_SRC_VALID_BPE.pth"
 echo "    $TGT: $DOMAIN_PARA_TGT_VALID_BPE.pth"
+echo "Parallel validation data (lowercased):"
+echo "    $SRC: $DOMAIN_PARA_LOWERCASED_SRC_VALID_BPE.pth"
+echo "    $TGT: $DOMAIN_PARA_LOWERCASED_TGT_VALID_BPE.pth"
 echo "Parallel test data:"
 echo "    $SRC: $DOMAIN_PARA_SRC_TEST_BPE.pth"
 echo "    $TGT: $DOMAIN_PARA_TGT_TEST_BPE.pth"
+echo "Parallel test data (lowercased):"
+echo "    $SRC: $DOMAIN_PARA_LOWERCASED_SRC_TEST_BPE.pth"
+echo "    $TGT: $DOMAIN_PARA_LOWERCASED_TGT_TEST_BPE.pth"
 echo ""
 
 : '
