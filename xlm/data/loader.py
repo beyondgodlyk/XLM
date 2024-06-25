@@ -288,10 +288,10 @@ def check_data_params(params):
         # assert params.use_downsampled_yelp_EN or params.use_foursquare_EN or params.use_mixed_EN or params.use_foursquare_FR
         # if params.use_mixed_EN:
         #     assert not params.use_downsampled_yelp_EN and not params.use_foursquare_EN
-        if len(params.ae_steps) == 2:
-            assert params.use_foursquare_FR
-        elif len(params.ae_steps) == 1:
-            assert not params.use_foursquare_FR        
+        # if len(params.ae_steps) == 2:
+        #     assert params.use_foursquare_FR
+        # elif len(params.ae_steps) == 1:
+        #     assert not params.use_foursquare_FR        
     else:
         assert not params.use_downsampled_yelp_EN and not params.use_foursquare_EN and not params.use_mixed_EN and not params.use_foursquare_FR and not params.use_foursquare_EN_lowercase
 
