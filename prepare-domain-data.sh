@@ -20,6 +20,7 @@ REPLACE_UNICODE_PUNCT=$MOSES/scripts/tokenizer/replace-unicode-punctuation.perl
 NORM_PUNC=$MOSES/scripts/tokenizer/normalize-punctuation.perl
 REM_NON_PRINT_CHAR=$MOSES/scripts/tokenizer/remove-non-printing-char.perl
 TOKENIZER=$MOSES/scripts/tokenizer/tokenizer.perl
+LOWERCASE=$MOSES/scripts/tokenizer/lowercase.perl
 
 # fastBPE
 FASTBPE_DIR=$TOOLS_PATH/fastBPE
@@ -120,12 +121,12 @@ fi
 # convert to lowercase
 if ! [[ -f "$DOMAIN_FOURSQ_LOWERCASED_SRC_TOK" ]]; then
   echo "Converting FourSquare and Yelp EN data to lowercase..."
-  $MAIN_PATH/convert_to_lowercase.py $DOMAIN_FOURSQ_SRC_TOK > $DOMAIN_FOURSQ_LOWERCASED_SRC_TOK
-  $MAIN_PATH/convert_to_lowercase.py $DOMAIN_YELP_SRC_TOK > $DOMAIN_YELP_LOWERCASED_SRC_TOK
+  eval "cat $DOMAIN_FOURSQ_SRC_TOK | $LOWERCASE > $DOMAIN_FOURSQ_LOWERCASED_SRC_TOK"
+  eval "cat $DOMAIN_YELP_SRC_TOK | $LOWERCASE > $DOMAIN_YELP_LOWERCASED_SRC_TOK"
 fi
 if ! [[ -f "$DOMAIN_FOURSQ_LOWERCASED_TGT_TOK" ]]; then
   echo "Converting FourSquare FR data to lowercase..."
-  $MAIN_PATH/convert_to_lowercase.py $DOMAIN_FOURSQ_TGT_TOK > $DOMAIN_FOURSQ_LOWERCASED_TGT_TOK
+  eval "cat $DOMAIN_FOURSQ_TGT_TOK | $LOWERCASE > $DOMAIN_FOURSQ_LOWERCASED_TGT_TOK"
 fi
 
 # apply BPE codes
@@ -172,10 +173,10 @@ eval "cat $FOURSQ_PATH/test.$SRC  | $SRC_PREPROCESSING > $DOMAIN_PARA_SRC_TEST_T
 eval "cat $FOURSQ_PATH/test.$TGT  | $TGT_PREPROCESSING > $DOMAIN_PARA_TGT_TEST_TOK"
 
 echo "Converting valid and test data to lowercase..."
-$MAIN_PATH/convert_to_lowercase.py $DOMAIN_PARA_SRC_VALID_TOK > $DOMAIN_PARA_LOWERCASED_SRC_VALID_TOK
-$MAIN_PATH/convert_to_lowercase.py $DOMAIN_PARA_TGT_VALID_TOK > $DOMAIN_PARA_LOWERCASED_TGT_VALID_TOK
-$MAIN_PATH/convert_to_lowercase.py $DOMAIN_PARA_SRC_TEST_TOK  > $DOMAIN_PARA_LOWERCASED_SRC_TEST_TOK
-$MAIN_PATH/convert_to_lowercase.py $DOMAIN_PARA_TGT_TEST_TOK  > $DOMAIN_PARA_LOWERCASED_TGT_TEST_TOK
+eval "cat $DOMAIN_PARA_SRC_VALID_TOK | $LOWERCASE > $DOMAIN_PARA_LOWERCASED_SRC_VALID_TOK"
+eval "cat $DOMAIN_PARA_TGT_VALID_TOK | $LOWERCASE > $DOMAIN_PARA_LOWERCASED_TGT_VALID_TOK"
+eval "cat $DOMAIN_PARA_SRC_TEST_TOK  | $LOWERCASE > $DOMAIN_PARA_LOWERCASED_SRC_TEST_TOK"
+eval "cat $DOMAIN_PARA_TGT_TEST_TOK  | $LOWERCASE > $DOMAIN_PARA_LOWERCASED_TGT_TEST_TOK"
 
 
 echo "Applying BPE to valid and test files..."
