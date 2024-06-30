@@ -311,8 +311,8 @@ def check_data_params(params):
             params.train_dataset_type_en = 'yelp_lowercased.'
         elif params.use_foursquare_EN:
             params.train_dataset_type_en = 'foursq.'
-        elif params.use_mixed_EN:
-            params.train_dataset_type_en = 'mixed.'
+        elif params.use_mixed_EN_lowercase:
+            params.train_dataset_type_en = 'mixed_lowercased.'
         elif params.use_foursquare_EN_lowercase:
             params.train_dataset_type_en = 'foursq_lowercased.'
         elif params.use_downsampled_yelp_EN_lowercase:
