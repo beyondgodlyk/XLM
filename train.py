@@ -225,6 +225,8 @@ def get_parser():
     
     parser.add_argument("--use_foursquare_EN_lowercase", type=bool_flag, default=False,
                         help="True if FourSquare EN dataset with lowercased text is used for domain adaptive training")
+    parser.add_argument("--use_yelp_EN_lowercase", type=bool_flag, default=False,
+                        help="True if Yelp EN dataset with lowercased text is used for domain adaptive training")
     parser.add_argument("--use_downsampled_yelp_EN_lowercase", type=bool_flag, default=False,
                         help="True if downsampled Yelp EN dataset with lowercased text is used for domain adaptive training")
     # Datasets for FR

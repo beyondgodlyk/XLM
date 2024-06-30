@@ -307,6 +307,8 @@ def check_data_params(params):
         logger.info("Replacing mono_dataset entries with corresponding domain adaptive data train sets")
         if params.use_downsampled_yelp_EN:
             params.train_dataset_type_en = 'yelp_downsampled.'
+        elif params.use_yelp_EN_lowercase:
+            params.train_dataset_type_en = 'yelp_lowercased.'
         elif params.use_foursquare_EN:
             params.train_dataset_type_en = 'foursq.'
         elif params.use_mixed_EN:
