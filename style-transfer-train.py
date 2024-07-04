@@ -85,9 +85,9 @@ def main(params):
         assert len(line.strip().split()) > 0
         src_sent.append(line)
     logger.info("Read %i sentences from stdin. Translating ..." % len(src_sent))
-    logger.info(params)
+
     if not os.path.isfile(params.output_path):
-        params.output_path = os.path.join(params.dump_path, 'translated.txt')
+        params.output_path = os.path.join(params.dump_path, "%s-%s.txt" % (params.src_lang, params.tgt_lang))
 
     logger.info("Translated sentences will be saved in %s" % params.output_path)
     f = io.open(params.output_path, 'w', encoding='utf-8')
