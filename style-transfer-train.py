@@ -56,12 +56,9 @@ def get_parser():
 
 def main(params):
 
-    if not os.path.isfile(params.output_path):
-        params.output_path = os.path.join(params.dump_path, 'translated.txt')
-
     # initialize the experiment
     logger = initialize_exp(params)
-
+    
     # generate parser / parse parameters
     parser = get_parser()
     params = parser.parse_args()
@@ -88,6 +85,9 @@ def main(params):
         assert len(line.strip().split()) > 0
         src_sent.append(line)
     logger.info("Read %i sentences from stdin. Translating ..." % len(src_sent))
+
+    if not os.path.isfile(params.output_path):
+        params.output_path = os.path.join(params.dump_path, 'translated.txt')
 
     logger.info("Translated sentences will be saved in %s" % params.output_path)
     f = io.open(params.output_path, 'w', encoding='utf-8')
