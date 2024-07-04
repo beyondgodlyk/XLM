@@ -56,6 +56,9 @@ def get_parser():
 
 def main(params):
 
+    if not os.path.isfile(params.output_path):
+        params.output_path = os.path.join(params.dump_path, 'translated.txt')
+
     # initialize the experiment
     logger = initialize_exp(params)
 
@@ -86,9 +89,7 @@ def main(params):
         src_sent.append(line)
     logger.info("Read %i sentences from stdin. Translating ..." % len(src_sent))
 
-    if not os.path.isfile(params.output_path):
-        params.output_path = os.path.join(params.dump_path, 'translated.txt')
-
+    logger.info("Translated sentences will be saved in %s" % params.output_path)
     f = io.open(params.output_path, 'w', encoding='utf-8')
 
     for i in range(0, len(src_sent), params.batch_size):
