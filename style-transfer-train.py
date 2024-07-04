@@ -137,7 +137,7 @@ if __name__ == '__main__':
     # check parameters
     assert os.path.isfile(params.model_path)
     assert params.src_lang != '' and params.tgt_lang != '' and params.src_lang != params.tgt_lang
-    assert params.output_path and not os.path.isfile(params.output_path)
+    # assert params.output_path and not os.path.isfile(params.output_path)
 
     # translate
     with torch.no_grad():
