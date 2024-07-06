@@ -43,7 +43,8 @@ def get_parser():
     parser.add_argument("--dump_path", type=str, default="./dumped/", help="Experiment dump path")
     parser.add_argument("--exp_name", type=str, default="", help="Experiment name")
     parser.add_argument("--exp_id", type=str, default="", help="Experiment ID")
-
+    parser.add_argument("--save_periodic", type=int, default=0,
+                        help="Save the model periodically (0 to disable)")
     # batch parameters
     parser.add_argument("--batch_size", type=int, default=32, help="Number of sentences per batch")
     parser.add_argument("--max_len", type=int, default=30,
