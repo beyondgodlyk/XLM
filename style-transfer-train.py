@@ -96,9 +96,9 @@ def get_parser():
     parser.add_argument("--use_memory", type=bool_flag, default=False,
                         help="Use an external memory")
     
-    # debug
-    # parser.add_argument("--debug_train", type=bool_flag, default=False,
-    #                     help="Use valid sets for train sets (faster loading)")
+    # debug (required for using load binarized)
+    parser.add_argument("--debug_train", type=bool_flag, default=False,
+                        help="Use valid sets for train sets (faster loading)")
     
     # Datasets for EN
     parser.add_argument("--use_yelp_EN_lowercase", type=bool_flag, default=True,
