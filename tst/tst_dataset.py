@@ -13,8 +13,8 @@ class TSTDataset(Dataset):
         This is created to forced the length of all sentences to be the same (31 after adding 2 EOS tokens)
         """
         # sentences = sorted(sentences, key=lambda x: len(x), reverse=True)
-        lengths = torch.LongTensor([self.max_len + 2 for s in sentences])
-        sent = torch.LongTensor(lengths.max().item(), lengths.size(0)).fill_(self.pad_index)
+        lengths = torch.LongTensor([len(s) + 2 for s in sentences])
+        sent = torch.LongTensor(self.max_len + 2, lengths.size(0)).fill_(self.pad_index)
 
         sent[0] = self.eos_index
         for i, s in enumerate(sentences):
