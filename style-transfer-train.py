@@ -84,6 +84,10 @@ def get_parser():
     parser.add_argument("--validation_metrics", type=str, default="",
                         help="Validation metrics")
     
+    # memory parameters
+    parser.add_argument("--use_memory", type=bool_flag, default=False,
+                        help="Use an external memory")
+    
     # debug
     parser.add_argument("--debug_train", type=bool_flag, default=False,
                         help="Use valid sets for train sets (faster loading)")
