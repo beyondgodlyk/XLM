@@ -158,6 +158,7 @@ def load_tst_data(params, logger):
         for data_set in v.keys():
             logger.info('{: <18} - {: >5} - {: >12}:{: >10}'.format('TST data', data_set, label, len(v[data_set])))
 
+    return data
 
 def main(params):
 
