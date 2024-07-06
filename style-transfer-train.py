@@ -20,6 +20,7 @@ import io
 import sys
 import argparse
 import torch
+import random
 
 from xlm.utils import AttrDict
 from xlm.utils import bool_flag, initialize_exp
@@ -27,6 +28,7 @@ from xlm.data.loader import load_binarized, set_dico_parameters
 from xlm.data.dictionary import Dictionary
 from xlm.model.transformer import TransformerModel
 from tst.tst_dataset import TSTDataset
+from tst.tst_trainer import TSTTrainer
 
 
 def get_parser():
@@ -166,52 +168,23 @@ def main(params):
     params.src_id = model_params.lang2id[params.src_lang]
     params.tgt_id = model_params.lang2id[params.tgt_lang]
 
-    # read sentences from stdin
-    src_sent = []
-    for line in sys.stdin.readlines():
-        assert len(line.strip().split()) > 0
-        src_sent.append(line)
-    logger.info("Read %i sentences from stdin. Translating ..." % len(src_sent))
+    trainer = TSTTrainer(encoder, decoder, data, params)
 
-    
-    logger.info("Translated sentences will be saved in %s" % params.output_path)
-    f = io.open(params.output_path, 'w', encoding='utf-8')
+    for _ in range(params.max_epoch):
 
-    for i in range(0, len(src_sent), params.batch_size):
+        logger.info("============ Starting epoch %i ... ============" % trainer.epoch)
 
-        # prepare batch
-        word_ids = [torch.LongTensor([dico.index(w) for w in s.strip().split()])
-                    for s in src_sent[i:i + params.batch_size]]
-        lengths = torch.LongTensor([len(s) + 2 for s in word_ids])
-        batch = torch.LongTensor(lengths.max().item(), lengths.size(0)).fill_(params.pad_index)
-        batch[0] = params.eos_index
-        for j, s in enumerate(word_ids):
-            if lengths[j] > 2:  # if sentence not empty
-                batch[1:lengths[j] - 1, j].copy_(s)
-            batch[lengths[j] - 1, j] = params.eos_index
-        langs = batch.clone().fill_(params.src_id)
+        trainer.n_sentences = 0
 
-        # encode source batch and translate it
-        encoded = encoder('fwd', x=batch.cuda(), lengths=lengths.cuda(), langs=langs.cuda(), causal=False)
-        encoded = encoded.transpose(0, 1)
-        decoded, dec_lengths = decoder.generate(encoded, lengths.cuda(), params.tgt_id, max_len=int(1.5 * lengths.max().item() + 10))
+        while trainer.n_sentences < trainer.epoch_size:
+            for label in random.shuffle([0, 1]):
+                trainer.classifier_step(label)
 
-        # convert sentences to words
-        for j in range(decoded.size(1)):
-
-            # remove delimiters
-            sent = decoded[:, j]
-            delimiters = (sent == params.eos_index).nonzero().view(-1)
-            assert len(delimiters) >= 1 and delimiters[0].item() == 0
-            sent = sent[1:] if len(delimiters) == 1 else sent[1:delimiters[1]]
-
-            # output translation
-            source = src_sent[i + j].strip()
-            target = " ".join([dico[sent[k].item()] for k in range(len(sent))])
-            sys.stderr.write("%i / %i: %s -> %s\n" % (i + j, len(src_sent), source, target))
-            f.write(target + "\n")
-
-    f.close()
+            trainer.iter()
+        
+        logger.info("============ End of epoch %i ============" % trainer.epoch)
+        
+        trainer.save_periodic()
 
 
 if __name__ == '__main__':
