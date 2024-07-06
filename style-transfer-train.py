@@ -83,6 +83,8 @@ def get_parser():
                         help="Stopping criterion, and number of non-increase before stopping the experiment")
     parser.add_argument("--validation_metrics", type=str, default="",
                         help="Validation metrics")
+    parser.add_argument("--accumulate_gradients", type=int, default=1,
+                        help="Accumulate model gradients over N iterations (N times larger batch sizes)")
     
     # float16 / AMP API
     parser.add_argument("--fp16", type=bool_flag, default=False,
