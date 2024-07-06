@@ -169,7 +169,7 @@ def main(params):
     params.src_id = model_params.lang2id[params.src_lang]
     params.tgt_id = model_params.lang2id[params.tgt_lang]
 
-    classifier = Classifier(model_params, dico).cuda()
+    classifier = Classifier(model_params.emb_dim, [2,3,4,5], 30, ).cuda()
 
     trainer = TSTTrainer(classifier, encoder, decoder, data, params)
 
