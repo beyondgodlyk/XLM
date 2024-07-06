@@ -84,6 +84,12 @@ def get_parser():
     parser.add_argument("--validation_metrics", type=str, default="",
                         help="Validation metrics")
     
+    # float16 / AMP API
+    parser.add_argument("--fp16", type=bool_flag, default=False,
+                        help="Run model with float16")
+    parser.add_argument("--amp", type=int, default=-1,
+                        help="Use AMP wrapper for float16 / distributed / gradient accumulation. Level of optimization. -1 to disable.")
+    
     # memory parameters
     parser.add_argument("--use_memory", type=bool_flag, default=False,
                         help="Use an external memory")
