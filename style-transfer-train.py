@@ -124,6 +124,8 @@ def check_params(params):
     params.lang2id = {k: v for v, k in params.id2lang.items()}
     params.n_langs = len(params.langs)
 
+    params.labels = [0, 1]
+
     # check monolingual datasets
     required_tst = set(['en'])
     params.tst_dataset = {
@@ -143,7 +145,7 @@ def load_tst_data(params, logger):
     data['tst'] = {}
 
     for lang in params.langs:
-        for label in [0, 1]:
+        for label in params.labels:
             data['tst'][label] = {}
             for splt in ['train', 'valid', 'test']:
                 style_data = load_binarized(params.tst_dataset[lang][splt][label], params)
@@ -196,7 +198,7 @@ def main(params):
         trainer.n_sentences = 0
 
         while trainer.n_sentences < trainer.epoch_size:
-            for label in random.shuffle([0, 1]):
+            for label in random.sample(params.labels, len(params.labels)):
                 trainer.classifier_step(label)
 
             trainer.iter()
