@@ -1,4 +1,5 @@
 from collections import OrderedDict
+import time
 
 from xlm.trainer import Trainer
 from xlm.utils import to_cuda
@@ -9,6 +10,9 @@ logger = getLogger()
 
 class TSTTrainer(Trainer):
     def __init__(self, classifier, encoder, decoder, data, params):
+        """
+        Initialize trainer.
+        """
         self.MODEL_NAMES = ["classifier"]
 
         self.classifier = classifier
@@ -17,12 +21,57 @@ class TSTTrainer(Trainer):
         self.data = data
         self.params = params
 
-        super().__init__(data, params)
+        # epoch / iteration size
+        self.epoch_size = params.epoch_size
+        if self.epoch_size == -1:
+            self.epoch_size = self.data
+            assert self.epoch_size > 0
 
+        # data iterators
+        self.iterators = {}
+
+        # set parameters
+        self.set_parameters()
+
+        # set optimizers
+        self.set_optimizers()
+
+        # stopping criterion used for early stopping
+        if params.stopping_criterion != '':
+            split = params.stopping_criterion.split(',')
+            assert len(split) == 2 and split[1].isdigit()
+            self.decrease_counts_max = int(split[1])
+            self.decrease_counts = 0
+            if split[0][0] == '_':
+                self.stopping_criterion = (split[0][1:], False)
+            else:
+                self.stopping_criterion = (split[0], True)
+            self.best_stopping_criterion = -1e12 if self.stopping_criterion[1] else 1e12
+        else:
+            self.stopping_criterion = None
+            self.best_stopping_criterion = None
+
+        # validation metrics
+        self.metrics = []
+        metrics = [m for m in params.validation_metrics.split(',') if m != '']
+        for m in metrics:
+            m = (m[1:], False) if m[0] == '_' else (m, True)
+            self.metrics.append(m)
+        self.best_metrics = {metric: (-1e12 if biggest else 1e12) for (metric, biggest) in self.metrics}
+
+        # training statistics
+        self.epoch = 0
+        self.n_iter = 0
+        self.n_total_iter = 0
+        self.n_sentences = 0
         self.stats = OrderedDict(
             [('processed_s', 0), ('processed_w', 0)] + 
             [('AE-%s' % label, []) for label in [0, 1]]
         )
+        self.last_time = time.time()
+
+        # reload potential checkpoints
+        self.reload_checkpoint()
 
     def get_iterator(self, iter_name, label):
         """
