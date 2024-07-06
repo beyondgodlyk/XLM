@@ -21,6 +21,9 @@ class TSTTrainer(Trainer):
         self.data = data
         self.params = params
 
+        # Set is_master to True to save models after every epoch
+        self.params.is_master = True
+
         # epoch / iteration size
         self.epoch_size = params.epoch_size
         if self.epoch_size == -1:
