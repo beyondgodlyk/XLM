@@ -5,7 +5,7 @@ import torch
 class TSTDataset(Dataset):
     def __init__(self, sent, pos, params, style):
         self.style = style
-
+        self.max_len = params.max_len
         super().__init__(sent, pos, params)
 
     def batch_sentences(self, sentences):
@@ -13,7 +13,7 @@ class TSTDataset(Dataset):
         This is created to forced the length of all sentences to be the same (31 after adding 2 EOS tokens)
         """
         # sentences = sorted(sentences, key=lambda x: len(x), reverse=True)
-        lengths = torch.LongTensor([self.params.max_len + 2 for s in sentences])
+        lengths = torch.LongTensor([self.max_len + 2 for s in sentences])
         sent = torch.LongTensor(lengths.max().item(), lengths.size(0)).fill_(self.pad_index)
 
         sent[0] = self.eos_index
