@@ -78,7 +78,7 @@ class TSTTrainer(Trainer):
         Create a new iterator for a dataset.
         """
         logger.info("Creating new training data iterator (%s) ..." % ','.join([str(x) for x in [iter_name, label] if x is not None]))
-        
+
         iterator = self.data[iter_name][label]['train'].get_iterator(
             shuffle=False, 
             group_by_size=False, 
@@ -118,9 +118,16 @@ class TSTTrainer(Trainer):
         enc = enc.transpose(0, 1)
 
         logger.info("encoded shape: %s" % str(enc.shape))
-        logger.info("encoded: %s" % str(enc))
 
         self.n_sentences += params.batch_size
         self.stats['processed_s'] += len.size(0)
         self.stats['processed_w'] += (len - 1).sum().item()
         return 1
+    
+    def iter(self):
+        """
+        End of iteration.
+        """
+        self.n_iter += 1
+        self.n_total_iter += 1
+        self.print_stats()
