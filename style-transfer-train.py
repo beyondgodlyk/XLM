@@ -61,6 +61,10 @@ def get_parser():
     parser.add_argument("--model_path", type=str, default="", help="Model path")
     parser.add_argument("--output_path", type=str, default="", help="Output path")
 
+    # reload checkpoint
+    parser.add_argument("--reload_checkpoint", type=str, default="",
+                        help="Reload a checkpoint")
+
     parser.add_argument("--max_vocab", type=int, default=-1, help="Maximum vocabulary size (-1 to disable)")
     parser.add_argument("--min_count", type=int, default=0, help="Minimum vocabulary count")
 
