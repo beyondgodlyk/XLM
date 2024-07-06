@@ -8,11 +8,12 @@ from logging import getLogger
 logger = getLogger()
 
 class TSTTrainer(Trainer):
-    def __init__(self, encoder, classifier, data, params):
+    def __init__(self, classifier, encoder, decoder, data, params):
         self.MODEL_NAMES = ["classifier"]
 
-        self.encoder = encoder
         self.classifier = classifier
+        self.encoder = encoder
+        self.decoder = decoder
         self.data = data
         self.params = params
 
@@ -22,7 +23,6 @@ class TSTTrainer(Trainer):
             [('processed_s', 0), ('processed_w', 0)] + 
             [('AE-%s' % label, []) for label in [0, 1]]
         )
-        self.encoder.eval()
 
     def get_iterator(self, iter_name, label):
         """

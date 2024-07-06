@@ -29,6 +29,7 @@ from xlm.data.dictionary import Dictionary
 from xlm.model.transformer import TransformerModel
 from tst.tst_dataset import TSTDataset
 from tst.tst_trainer import TSTTrainer
+from tst.classifier import Classifier
 
 
 def get_parser():
@@ -168,7 +169,9 @@ def main(params):
     params.src_id = model_params.lang2id[params.src_lang]
     params.tgt_id = model_params.lang2id[params.tgt_lang]
 
-    trainer = TSTTrainer(encoder, decoder, data, params)
+    classifier = Classifier(model_params, dico).cuda()
+
+    trainer = TSTTrainer(classifier, encoder, decoder, data, params)
 
     for _ in range(params.max_epoch):
 
