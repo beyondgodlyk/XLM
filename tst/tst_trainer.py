@@ -123,11 +123,11 @@ class TSTTrainer(Trainer):
         logger.info("Encoder output shape with label %s: %s" % (label, enc.size()))
 
         pred = self.classifier(enc)
-        logger.info("Pred: {}".format(pred))
+        logger.info("Pred shape: %s" % pred.size())
 
         logger.info("")
 
-        loss = F.binary_cross_entropy(pred, label)
+        loss = F.binary_cross_entropy(pred, label.repeat(pred.size(0)))
         self.stats['BCE-%s' % label].append(loss.item())
 
         self.optimize(loss)
