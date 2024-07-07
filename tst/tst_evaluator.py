@@ -77,7 +77,13 @@ class TSTEvaluator(Evaluator):
         
         agg_label = agg_label.long() # convert to long because binary_recall() does and operation and gives error
 
-        # compute accuracy, precision, recall, f1
+        # Accuracy and BCE for the separate datasets
+        scores['BCE-%s-%s' % (data_set, 0)] = F.binary_cross_entropy(agg_pred[:(2000 if data_set == 'valid' else 500)], agg_label[:(2000 if data_set == 'valid' else 500)]).item()
+        scores['BCE-%s-%s' % (data_set, 1)] = F.binary_cross_entropy(agg_pred[(2000 if data_set == 'valid' else 500):], agg_label[(2000 if data_set == 'valid' else 500):]).item()
+        scores['ACC-%s-%s' % (data_set, 0)] = binary_accuracy(agg_pred[:(2000 if data_set == 'valid' else 500)], agg_label[:(2000 if data_set == 'valid' else 500)]).item()
+        scores['ACC-%s-%s' % (data_set, 1)] = binary_accuracy(agg_pred[(2000 if data_set == 'valid' else 500):], agg_label[(2000 if data_set == 'valid' else 500):]).item()
+        
+        # compute accuracy, precision, recall, f1 of the combined dataset
         scores['ACC-%s' % data_set] = binary_accuracy(agg_pred, agg_label).item()
         scores['PREC-%s' % data_set] = binary_precision(agg_pred, agg_label).item()
         scores['RECALL-%s' % data_set] = binary_recall(agg_pred, agg_label).item()
