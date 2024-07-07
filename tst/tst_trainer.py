@@ -120,7 +120,7 @@ class TSTTrainer(Trainer):
         enc = self.encoder('fwd', x=x, lengths=len, langs=langs, causal=False)
         enc = enc.transpose(0, 1)
 
-        logger.info("encoded shape: %s" % str(enc.shape))
+        
 
         self.n_sentences += params.batch_size
         self.stats['processed_s'] += len.size(0)

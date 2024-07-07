@@ -10,7 +10,7 @@ class TSTDataset(Dataset):
 
     def batch_sentences(self, sentences):
         """
-        This is created to forced the length of all sentences to be the same (31 after adding 2 EOS tokens)
+        This is created to forced the length of all sentences to be the same (32 after adding 2 EOS tokens)
         """
         # sentences = sorted(sentences, key=lambda x: len(x), reverse=True)
         lengths = torch.LongTensor([len(s) + 2 for s in sentences])
