@@ -1,5 +1,6 @@
 from collections import OrderedDict
 import time
+import torch
 import torch.nn.functional as F
 
 from xlm.trainer import Trainer
@@ -124,12 +125,11 @@ class TSTTrainer(Trainer):
 
         pred = self.classifier(enc)
         logger.info("Pred class: %s" % pred.__class__)
-        print(pred.size())
 
-        logger.info("")
 
-        loss = F.binary_cross_entropy(pred, label.repeat(pred.size(0)))
+        loss = F.binary_cross_entropy(pred, torch.Tensor([label]).repeat(pred.size()))
         self.stats['BCE-%s' % label].append(loss.item())
+        print(loss)
 
         self.optimize(loss)
 
