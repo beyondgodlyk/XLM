@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from xlm.model.transformer import gelu
 
 class Classifier(nn.Module):
-    def __init__(self, emb_dim, kernel_sizes, max_seq_len = 30, fc_sizes=[100, 50, 1], num_filters=256, dropout=0.1):
+    def __init__(self, emb_dim, kernel_sizes, dropout=0.1, max_seq_len = 30, fc_sizes=[100, 50, 1], num_filters=256):
         super(Classifier, self).__init__()
 
         self.emb_dim = emb_dim

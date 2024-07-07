@@ -75,6 +75,8 @@ def get_parser():
                         help="Validation metrics")
     parser.add_argument("--kernel_sizes", type=str, default="2,3,4,5",
                         help="Kernel sizes for the CNN classifier")
+    parser.add_argument("--dropout", type=float, default=0.1,
+                        help="Dropout for the CNN classifier")
         
     # float16 / AMP API
     parser.add_argument("--amp", type=int, default=-1,
@@ -177,7 +179,7 @@ def main(params):
     params.src_id = model_params.lang2id[params.src_lang]
     params.tgt_id = model_params.lang2id[params.tgt_lang]
 
-    classifier = Classifier(model_params.emb_dim, params.kernel_sizes, params.max_len).cuda()
+    classifier = Classifier(model_params.emb_dim, params.kernel_sizes, params.dropout, params.max_len).cuda()
     logger.debug("Classifier: {}".format(classifier))
     logger.info("Number of parameters (classifier): %i" % sum([p.numel() for p in classifier.parameters() if p.requires_grad]))
 
