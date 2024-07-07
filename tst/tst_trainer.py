@@ -71,7 +71,8 @@ class TSTTrainer(Trainer):
         self.n_sentences = 0
         self.stats = OrderedDict(
             [('processed_s', 0), ('processed_w', 0)] + 
-            [('BCE-%s' % label, []) for label in [0, 1]]
+            [('BCE-%s' % label, []) for label in [0, 1]] + 
+            [('ACC-%s' % label, []) for label in [0, 1]]
         )
         self.last_time = time.time()
 
@@ -126,6 +127,7 @@ class TSTTrainer(Trainer):
 
         loss = F.binary_cross_entropy(pred, torch.Tensor([label]).repeat(pred.size()).cuda())
         self.stats['BCE-%s' % label].append(loss.item())
+        self.stats['ACC-%s' % label].append(((pred > 0.5) == label).float().mean().item())
 
         self.optimize(loss)
 
