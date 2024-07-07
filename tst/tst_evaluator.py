@@ -31,7 +31,7 @@ class TSTEvaluator(Evaluator):
 
         with torch.no_grad():
             for data_set in ['valid', 'test']:
-                scores.update(self.evaluate_classifier(scores, data_set))
+                self.evaluate_classifier(scores, data_set)
         
         return scores
 
