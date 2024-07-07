@@ -124,10 +124,8 @@ class TSTTrainer(Trainer):
         logger.info("Encoder output shape with label %s: %s" % (label, enc.size()))
 
         pred = self.classifier(enc)
-        logger.info("Pred class: %s" % pred.__class__)
 
-
-        loss = F.binary_cross_entropy(pred, torch.Tensor([label]).repeat(pred.size()))
+        loss = F.binary_cross_entropy(pred, torch.Tensor([label]).repeat(pred.size()).cuda())
         self.stats['BCE-%s' % label].append(loss.item())
         print(loss)
 
