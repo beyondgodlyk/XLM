@@ -128,6 +128,7 @@ class TSTTrainer(Trainer):
         enc = enc.transpose(0, 1)
 
         pred = self.classifier(enc)
+        logger.info("pred shape: %s" % str(pred.size()))
         tensor_label = torch.Tensor([label]).repeat(pred.size()).cuda()
 
         loss = F.binary_cross_entropy(pred, tensor_label)
