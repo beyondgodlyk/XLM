@@ -69,7 +69,7 @@ class TSTEvaluator(Evaluator):
                 agg_pred = torch.cat((agg_pred, pred))
                 agg_label = torch.cat((agg_label, torch.Tensor([label]).repeat(pred.size()).cuda()))
 
-        assert len(agg_pred) == 4000 if data_set == 'valid' else 1000
+        assert len(agg_pred) == (4000 if data_set == 'valid' else 1000)
         
         # compute accuracy, precision, recall, f1
         scores['ACC-%s' % data_set] = binary_accuracy(agg_pred, agg_label).item()
