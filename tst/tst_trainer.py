@@ -2,6 +2,7 @@ from collections import OrderedDict
 import time
 import torch
 import torch.nn.functional as F
+from torcheval.metrics.functional import binary_accuracy, binary_f1_score, binary_precision, binary_recall
 
 from xlm.trainer import Trainer
 from xlm.utils import to_cuda
@@ -72,7 +73,10 @@ class TSTTrainer(Trainer):
         self.stats = OrderedDict(
             [('processed_s', 0), ('processed_w', 0)] + 
             [('BCE-%s' % label, []) for label in [0, 1]] + 
-            [('ACC-%s' % label, []) for label in [0, 1]]
+            [('ACC-%s' % label, []) for label in [0, 1]] + 
+            [('PREC-%s' % label, []) for label in [0, 1]] +
+            [('RECALL-%s' % label, []) for label in [0, 1]] +
+            [('F1-%s' % label, []) for label in [0, 1]]
         )
         self.last_time = time.time()
 
@@ -124,11 +128,15 @@ class TSTTrainer(Trainer):
         enc = enc.transpose(0, 1)
 
         pred = self.classifier(enc)
+        tensor_label = torch.Tensor([label]).repeat(pred.size()).cuda()
 
-        loss = F.binary_cross_entropy(pred, torch.Tensor([label]).repeat(pred.size()).cuda())
+        loss = F.binary_cross_entropy(pred, tensor_label)
         self.stats['BCE-%s' % label].append(loss.item())
-        self.stats['ACC-%s' % label].append(((pred > 0.5) == label).float().mean().item())
-
+        self.stats['ACC-%s' % label].append(binary_accuracy(pred, tensor_label).item())
+        self.stats['PREC-%s' % label].append(binary_precision(pred, tensor_label).item())
+        self.stats['RECALL-%s' % label].append(binary_recall(pred, tensor_label).item())
+        self.stats['F1-%s' % label].append(binary_f1_score(pred, tensor_label).item())
+        
         self.optimize(loss)
 
         self.n_sentences += params.batch_size
