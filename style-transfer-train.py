@@ -73,12 +73,10 @@ def get_parser():
                         help="Stopping criterion, and number of non-increase before stopping the experiment")
     parser.add_argument("--validation_metrics", type=str, default="",
                         help="Validation metrics")
-    # parser.add_argument("--accumulate_gradients", type=int, default=1,
-                        # help="Accumulate model gradients over N iterations (N times larger batch sizes)")
-    
+    parser.add_argument("--kernel_sizes", type=str, default="2,3,4,5",
+                        help="Kernel sizes for the CNN classifier")
+        
     # float16 / AMP API
-    # parser.add_argument("--fp16", type=bool_flag, default=False,
-    #                     help="Run model with float16")
     parser.add_argument("--amp", type=int, default=-1,
                         help="Use AMP wrapper for float16 / distributed / gradient accumulation. Level of optimization. -1 to disable.")
     
@@ -98,8 +96,11 @@ def get_parser():
 
 def check_params(params):
     """
-    Check datasets parameters.
+    Check parameters and add necessary ones.
     """
+    # Disabled Multi GPU for the training to finish
+    params.multi_gpu = False
+
     # data path
     assert os.path.isdir(params.data_path), params.data_path
 
@@ -112,7 +113,11 @@ def check_params(params):
 
     params.labels = [0, 1]
 
-    # check monolingual datasets
+    # Parse kernel sizes
+    assert params.kernel_sizes != ''
+    params.kernel_sizes = list(map(int, params.kernel_sizes.split(',')))
+
+    # check datasets
     required_tst = set(['en'])
     params.tst_dataset = {
         lang: {
@@ -154,15 +159,10 @@ def main(params):
     if not os.path.isfile(params.output_path):
         params.output_path = os.path.join(params.dump_path, "%s-%s.txt" % (params.src_lang, params.tgt_lang))
 
-    # Disabled Multi GPU for the training to finish
-    params.multi_gpu = False
-
     data = load_tst_data(params, logger)
-    logger.info("Data loaded")
 
     reloaded = torch.load(params.model_path)
     model_params = AttrDict(reloaded['params'])
-    logger.info("Supported languages: %s" % ", ".join(model_params.lang2id.keys()))
 
     # update dictionary parameters
     for name in ['n_words', 'bos_index', 'eos_index', 'pad_index', 'unk_index', 'mask_index']:
@@ -177,7 +177,7 @@ def main(params):
     params.src_id = model_params.lang2id[params.src_lang]
     params.tgt_id = model_params.lang2id[params.tgt_lang]
 
-    classifier = Classifier(model_params.emb_dim, [2,3,4,5], params.max_len).cuda()
+    classifier = Classifier(model_params.emb_dim, params.kernel_sizes, params.max_len).cuda()
     logger.debug("Classifier: {}".format(classifier))
     logger.info("Number of parameters (classifier): %i" % sum([p.numel() for p in classifier.parameters() if p.requires_grad]))
 
