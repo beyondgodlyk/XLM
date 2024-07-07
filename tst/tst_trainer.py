@@ -74,6 +74,7 @@ class TSTTrainer(Trainer):
             [('processed_s', 0), ('processed_w', 0)] + 
             [('BCE-%s' % label, []) for label in [0, 1]] + 
             [('ACC-%s' % label, []) for label in [0, 1]] + 
+            [('Accuracy-%s' % label, []) for label in [0, 1]] +
             [('PREC-%s' % label, []) for label in [0, 1]] +
             [('RECALL-%s' % label, []) for label in [0, 1]] +
             [('F1-%s' % label, []) for label in [0, 1]]
