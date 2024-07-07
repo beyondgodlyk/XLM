@@ -134,7 +134,7 @@ class TSTTrainer(Trainer):
         loss = F.binary_cross_entropy(pred, tensor_label)
         self.stats['BCE-%s' % label].append(loss.item())
         self.stats['ACC-%s' % label].append(binary_accuracy(pred, tensor_label).item())
-        self.stats['PREC-%s' % label].append(binary_precision(pred, tensor_label).item())
+        # self.stats['PREC-%s' % label].append(binary_precision(pred, tensor_label).item())
         # self.stats['RECALL-%s' % label].append(binary_recall(pred_label, tensor_label).item())
         # self.stats['F1-%s' % label].append(binary_f1_score(pred, tensor_label).item())
         
