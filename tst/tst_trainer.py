@@ -123,6 +123,7 @@ class TSTTrainer(Trainer):
         logger.info("Encoder output shape with label %s: %s" % (label, enc.size()))
 
         pred = self.classifier(enc)
+        logger.info("Pred class: %s" % pred.__class__)
         logger.info("Pred shape: %s" % pred.size())
 
         logger.info("")
