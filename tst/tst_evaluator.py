@@ -16,6 +16,7 @@ class TSTEvaluator(Evaluator):
         self.data = data
         self.dico = data['dico']
         self.params = params
+        self.encoder = trainer.encoder
         self.classifier = trainer.classifier
 
     def run_all_evals(self, trainer):
