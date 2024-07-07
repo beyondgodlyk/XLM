@@ -74,7 +74,6 @@ class TSTTrainer(Trainer):
             [('processed_s', 0), ('processed_w', 0)] + 
             [('BCE-%s' % label, []) for label in [0, 1]] + 
             [('ACC-%s' % label, []) for label in [0, 1]] + 
-            [('Accuracy-%s' % label, []) for label in [0, 1]] +
             [('PREC-%s' % label, []) for label in [0, 1]] +
             [('RECALL-%s' % label, []) for label in [0, 1]] +
             [('F1-%s' % label, []) for label in [0, 1]]
@@ -135,7 +134,6 @@ class TSTTrainer(Trainer):
         loss = F.binary_cross_entropy(pred, tensor_label)
         self.stats['BCE-%s' % label].append(loss.item())
         self.stats['ACC-%s' % label].append(binary_accuracy(pred, tensor_label).item())
-        self.stats['Accuracy-%s' % label].append(((pred >= 0.5) == label).float().mean().item())
         # self.stats['PREC-%s' % label].append(binary_precision(pred, tensor_label).item())
         # self.stats['RECALL-%s' % label].append(binary_recall(pred_label, tensor_label).item())
         # self.stats['F1-%s' % label].append(binary_f1_score(pred, tensor_label).item())
