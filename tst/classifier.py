@@ -23,7 +23,7 @@ class Classifier(nn.Module):
     def forward(self, latent):
         # TODO : Implement Spatial Dropout
         # latent (the 0th and 1st dimensions are already swapped in trainer): (batch_size, max_seq_len, emb_dim)
-        assert latent.size(1) == self.max_seq_len
+        assert latent.size(1) == self.max_seq_len + 2
         assert latent.size(2) == self.emb_dim
 
         latent = latent.transpose(1, 2).contiguous() # (batch_size, emb_dim, max_seq_len)

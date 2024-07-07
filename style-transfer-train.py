@@ -189,7 +189,7 @@ def main(params):
     params.src_id = model_params.lang2id[params.src_lang]
     params.tgt_id = model_params.lang2id[params.tgt_lang]
 
-    classifier = Classifier(model_params.emb_dim, [2,3,4,5], 30, ).cuda()
+    classifier = Classifier(model_params.emb_dim, [2,3,4,5], params.max_len).cuda()
     logger.debug("Classifier: {}".format(classifier))
     logger.info("Number of parameters (classifier): %i" % sum([p.numel() for p in classifier.parameters() if p.requires_grad]))
 

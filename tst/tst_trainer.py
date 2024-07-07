@@ -1,5 +1,6 @@
 from collections import OrderedDict
 import time
+import torch.nn.functional as F
 
 from xlm.trainer import Trainer
 from xlm.utils import to_cuda
@@ -69,7 +70,7 @@ class TSTTrainer(Trainer):
         self.n_sentences = 0
         self.stats = OrderedDict(
             [('processed_s', 0), ('processed_w', 0)] + 
-            [('AE-%s' % label, []) for label in [0, 1]]
+            [('BCE-%s' % label, []) for label in [0, 1]]
         )
         self.last_time = time.time()
 
@@ -119,13 +120,21 @@ class TSTTrainer(Trainer):
 
         enc = self.encoder('fwd', x=x, lengths=len, langs=langs, causal=False)
         enc = enc.transpose(0, 1)
+        logger.info("Encoder output shape with label %s: %s" % (label, enc.size()))
 
-        
+        pred = self.classifier(enc)
+        logger.info("Pred: {}".format(pred))
+
+        logger.info("")
+
+        loss = F.binary_cross_entropy(pred, label)
+        self.stats['BCE-%s' % label].append(loss.item())
+
+        self.optimize(loss)
 
         self.n_sentences += params.batch_size
         self.stats['processed_s'] += len.size(0)
         self.stats['processed_w'] += (len - 1).sum().item()
-        return 1
     
     def iter(self):
         """
