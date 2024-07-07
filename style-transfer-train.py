@@ -202,7 +202,7 @@ def main(params):
         trainer.n_sentences = 0
 
         while trainer.n_sentences < trainer.epoch_size:
-            for label in random.sample([0], len([0])):
+            for label in random.sample(params.labels, len(params.labels)):
                 trainer.classifier_step(label)
 
             trainer.iter()
