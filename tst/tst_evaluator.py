@@ -7,6 +7,10 @@ from xlm.evaluation.evaluator import Evaluator
 
 from xlm.utils import to_cuda
 
+from logging import getLogger
+
+logger = getLogger()
+
 class TSTEvaluator(Evaluator):
     def __init__(self, trainer, data, params):
         """
@@ -69,6 +73,7 @@ class TSTEvaluator(Evaluator):
                 agg_pred = torch.cat((agg_pred, pred))
                 agg_label = torch.cat((agg_label, torch.Tensor([label]).repeat(pred.size()).cuda()))
 
+        logger.info("Aggregate predictions shape: {}".format(agg_pred.size()))
         assert len(agg_pred) == (4000 if data_set == 'valid' else 1000)
         
         # compute accuracy, precision, recall, f1
