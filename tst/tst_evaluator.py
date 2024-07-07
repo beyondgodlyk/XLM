@@ -73,11 +73,11 @@ class TSTEvaluator(Evaluator):
                 agg_pred = torch.cat((agg_pred, pred))
                 agg_label = torch.cat((agg_label, torch.Tensor([label]).repeat(pred.size()).cuda()))
 
-        logger.info("Aggregate predictions shape: {}".format(agg_pred.size()))
+        
         assert agg_pred.size(0) == (4000 if data_set == 'valid' else 1000)
         
         # compute accuracy, precision, recall, f1
         scores['ACC-%s' % data_set] = binary_accuracy(agg_pred, agg_label).item()
         scores['PREC-%s' % data_set] = binary_precision(agg_pred, agg_label).item()
-        scores['RECALL-%s' % data_set] = binary_recall(agg_pred, agg_label).item()
+        # scores['RECALL-%s' % data_set] = binary_recall(agg_pred, agg_label).item()
         scores['F1-%s' % data_set] = binary_f1_score(agg_pred, agg_label).item()
