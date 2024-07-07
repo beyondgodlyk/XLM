@@ -22,7 +22,6 @@ class TSTEvaluator(Evaluator):
         """
         Run all evaluations.
         """
-        params = self.params
         scores = OrderedDict({'epoch': trainer.epoch})
 
         with torch.no_grad():
@@ -45,9 +44,8 @@ class TSTEvaluator(Evaluator):
         Evaluate classifier on the sentiment data for either valid or test.
         """
         lang = 'en'
-        lang_id = params.lang2id[lang]
+        lang_id = self.params.lang2id[lang]
 
-        params = self.params
         assert data_set in ['valid', 'test']
 
         self.classifier.eval()
@@ -55,7 +53,7 @@ class TSTEvaluator(Evaluator):
         agg_pred = torch.Tensor().cuda()
         agg_label = torch.Tensor().cuda()
 
-        for label in params.labels:
+        for label in self.params.labels:
             for batch in self.get_iterator(data_set, label):
                 (x, len) = batch
                 

@@ -113,11 +113,9 @@ class TSTTrainer(Trainer):
     
     def classifier_step(self, label):
         lang = 'en'
-        lang_id = params.lang2id[lang]
-        
-        self.classifier.train()
+        lang_id = self.params.lang2id[lang]
 
-        params = self.params
+        self.classifier.train()
 
         
         (x, len) = self.get_batch('tst', label)
@@ -142,7 +140,7 @@ class TSTTrainer(Trainer):
         
         self.optimize(loss)
 
-        self.n_sentences += params.batch_size
+        self.n_sentences += self.params.batch_size
         self.stats['processed_s'] += len.size(0)
         self.stats['processed_w'] += (len - 1).sum().item()
     
