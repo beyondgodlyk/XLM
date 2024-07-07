@@ -71,11 +71,12 @@ class TSTEvaluator(Evaluator):
                 pred = self.classifier(enc).squeeze(1)
 
                 agg_pred = torch.cat((agg_pred, pred))
-                agg_label = torch.cat((agg_label, torch.ones(pred.size(), dtype=torch.long).cuda() if label == 1 else torch.zeros(pred.size(), dtype=torch.long).cuda()))
+                agg_label = torch.cat((agg_label, torch.Tensor([label]).repeat(pred.size()).cuda()))
 
-        
         assert agg_pred.size(0) == (4000 if data_set == 'valid' else 1000)
         
+        agg_label = agg_label.long() # convert to long because binary_recall() does and operation and gives error
+
         # compute accuracy, precision, recall, f1
         scores['ACC-%s' % data_set] = binary_accuracy(agg_pred, agg_label).item()
         scores['PREC-%s' % data_set] = binary_precision(agg_pred, agg_label).item()
