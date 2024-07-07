@@ -135,7 +135,7 @@ def load_tst_data(params, logger):
             data['tst'][label] = {}
             for splt in ['train', 'valid', 'test']:
                 style_data = load_binarized(params.tst_dataset[lang][splt][label], params)
-                set_dico_parameters(params, style_data, style_data['dico'])
+                set_dico_parameters(params, data, style_data['dico'])
 
                 data['tst'][label][splt] = TSTDataset(style_data['sentences'], style_data['positions'], params, label)
 
