@@ -124,7 +124,7 @@ class TSTTrainer(Trainer):
 
         pred = self.classifier(enc)
         logger.info("Pred class: %s" % pred.__class__)
-        logger.info("Pred shape: %s" % pred.size())
+        print(pred.size())
 
         logger.info("")
 
