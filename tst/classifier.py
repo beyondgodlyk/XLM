@@ -20,6 +20,16 @@ class Classifier(nn.Module):
         self.sigmoid = nn.Sigmoid()
         self.act = gelu
 
+        self.init_weights()
+
+    def init_weights(self):
+        for conv in self.convs:
+            nn.init.xavier_uniform_(conv.weight)
+            nn.init.constant_(conv.bias, 0.0)
+        for fc in self.fcs:
+            nn.init.xavier_uniform_(fc.weight)
+            nn.init.constant_(fc.bias, 0.0)
+
     def forward(self, latent):
         # TODO : Implement Spatial Dropout
         # latent (the 0th and 1st dimensions are already swapped in trainer): (batch_size, max_seq_len, emb_dim)
