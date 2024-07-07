@@ -154,6 +154,9 @@ def main(params):
     if not os.path.isfile(params.output_path):
         params.output_path = os.path.join(params.dump_path, "%s-%s.txt" % (params.src_lang, params.tgt_lang))
 
+    # Disabled Multi GPU for the training to finish
+    params.multi_gpu = False
+
     data = load_tst_data(params, logger)
     logger.info("Data loaded")
 

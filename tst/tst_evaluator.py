@@ -71,7 +71,7 @@ class TSTEvaluator(Evaluator):
                 pred = self.classifier(enc).squeeze(1)
 
                 agg_pred = torch.cat((agg_pred, pred))
-                agg_label = torch.cat((agg_label, torch.Tensor([label]).repeat(pred.size()).cuda()))
+                agg_label = torch.cat((agg_label, torch.ones(pred.size(), dtype=torch.long).cuda() if label == 1 else torch.zeros(pred.size(), dtype=torch.long).cuda()))
 
         
         assert agg_pred.size(0) == (4000 if data_set == 'valid' else 1000)
