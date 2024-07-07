@@ -1,20 +1,4 @@
-# Copyright (c) 2019-present, Facebook, Inc.
-# All rights reserved.
-#
-# This source code is licensed under the license found in the
-# LICENSE file in the root directory of this source tree.
-#
-# Translate sentences from the input stream.
-# The model will be faster is sentences are sorted by length.
-# Input sentences must have the same tokenization and BPE codes than the ones used in the model.
-#
-# Usage:
-#     cat source_sentences.bpe | \
-#     python translate.py --exp_name translate \
-#     --src_lang en --tgt_lang fr \
-#     --model_path trained_model.pth --output_path output
-#
-
+import json
 import os
 import io
 import sys
@@ -29,6 +13,7 @@ from xlm.data.dictionary import Dictionary
 from xlm.model.transformer import TransformerModel
 from tst.tst_dataset import TSTDataset
 from tst.tst_trainer import TSTTrainer
+from tst.tst_evaluator import TSTEvaluator
 from tst.classifier import Classifier
 
 
@@ -194,6 +179,7 @@ def main(params):
     logger.info("Number of parameters (classifier): %i" % sum([p.numel() for p in classifier.parameters() if p.requires_grad]))
 
     trainer = TSTTrainer(classifier, encoder, decoder, data, params)
+    evaluator = TSTEvaluator(trainer, data, params)
 
     for _ in range(params.max_epoch):
 
@@ -209,7 +195,19 @@ def main(params):
         
         logger.info("============ End of epoch %i ============" % trainer.epoch)
         
+        # Evaluate on classification metrics
+        scores = evaluator.run_all_evals(trainer)
+
+        # print / JSON log
+        for k, v in scores.items():
+            logger.info("%s -> %.6f" % (k, v))
+        if params.is_master:
+            logger.info("__log__:%s" % json.dumps(scores))
+
+        # end of epoch
+        trainer.save_best_model(scores)
         trainer.save_periodic()
+        trainer.end_epoch(scores)
 
 
 if __name__ == '__main__':

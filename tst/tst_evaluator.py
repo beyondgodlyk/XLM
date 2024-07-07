@@ -1,15 +1,79 @@
+import torch
+import torch.nn.functional as F
+from torcheval.metrics.functional import binary_accuracy, binary_f1_score, binary_precision, binary_recall
+
+from collections import OrderedDict
 from xlm.evaluation.evaluator import Evaluator
+
+from xlm.utils import to_cuda
 
 class TSTEvaluator(Evaluator):
     def __init__(self, trainer, data, params):
         """
         Build TST evaluator.
         """
-        super().__init__(trainer, data, params)
+        self.trainer = trainer
+        self.data = data
+        self.dico = data['dico']
+        self.params = params
         self.classifier = trainer.classifier
-    
-    def evaluate_classifier(self, data_set, label):
+
+    def run_all_evals(self, trainer):
         """
-        Evaluate classifier on the given dataset.
+        Run all evaluations.
         """
+        params = self.params
+        scores = OrderedDict({'epoch': trainer.epoch})
+
+        with torch.no_grad():
+            for data_set in ['valid', 'test']:
+                scores.update(self.evaluate_classifier(scores, data_set))
         
+        return scores
+
+    def get_iterator(self, data_set, label):
+        iterator = self.data['tst'][label][data_set].get_iterator(
+            shuffle=False, 
+            group_by_size=False, 
+            n_sentences=-1)
+    
+        for batch in iterator:
+            yield batch
+    
+    def evaluate_classifier(self, scores, data_set):
+        """
+        Evaluate classifier on the sentiment data for either valid or test.
+        """
+        lang = 'en'
+        lang_id = params.lang2id[lang]
+
+        params = self.params
+        assert data_set in ['valid', 'test']
+
+        self.classifier.eval()
+
+        agg_pred = torch.Tensor().cuda()
+        agg_label = torch.Tensor().cuda()
+
+        for label in params.labels:
+            for batch in self.get_iterator(data_set, label):
+                (x, len) = batch
+                
+                langs = x.clone().fill_(lang_id)
+                x, len, langs = to_cuda(x, len, langs)
+
+                enc = self.encoder('fwd', x=x, lengths=len, langs=langs, causal=False)
+                enc = enc.transpose(0, 1)
+
+                pred = self.classifier(enc).squeeze(1)
+
+                agg_pred = torch.cat((agg_pred, pred))
+                agg_label = torch.cat((agg_label, torch.Tensor([label]).repeat(pred.size()).cuda()))
+
+        assert len(agg_pred) == 4000 if data_set == 'valid' else 1000
+        
+        # compute accuracy, precision, recall, f1
+        scores['ACC-%s' % data_set] = binary_accuracy(agg_pred, agg_label).item()
+        scores['PREC-%s' % data_set] = binary_precision(agg_pred, agg_label).item()
+        scores['RECALL-%s' % data_set] = binary_recall(agg_pred, agg_label).item()
+        scores['F1-%s' % data_set] = binary_f1_score(agg_pred, agg_label).item()
