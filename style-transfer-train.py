@@ -77,6 +77,10 @@ def get_parser():
                         help="Kernel sizes for the CNN classifier")
     parser.add_argument("--dropout", type=float, default=0.1,
                         help="Dropout for the CNN classifier")
+    parser.add_argument("--fc_sizes", type=str, default="",
+                        help="Fully connected layer sizes for the CNN classifier")
+    parser.add_argument("--num_filters", type=int, default=256,
+                        help="Number of filters for the CNN classifier")
         
     # float16 / AMP API
     parser.add_argument("--amp", type=int, default=-1,
@@ -118,6 +122,12 @@ def check_params(params):
     # Parse kernel sizes
     assert params.kernel_sizes != ''
     params.kernel_sizes = list(map(int, params.kernel_sizes.split(',')))
+
+    # Parse fc sizes
+    params.fc_sizes = list(map(int, params.fc_sizes.split(','))) if params.fc_sizes != '' else []
+    assert len(params.fc_sizes) >= 2
+    assert params.fc_sizes[-1] == 1
+    assert params.fc_sizes[0] == params.num_filters * len(params.kernel_sizes)
 
     # check datasets
     required_tst = set(['en'])
@@ -179,7 +189,7 @@ def main(params):
     params.src_id = model_params.lang2id[params.src_lang]
     params.tgt_id = model_params.lang2id[params.tgt_lang]
 
-    classifier = Classifier(model_params.emb_dim, params.kernel_sizes, params.dropout, params.max_len).cuda()
+    classifier = Classifier(model_params.emb_dim, params.kernel_sizes, params.dropout, params.fc_sizes, params.num_filters, params.max_len).cuda()
     logger.debug("Classifier: {}".format(classifier))
     logger.info("Number of parameters (classifier): %i" % sum([p.numel() for p in classifier.parameters() if p.requires_grad]))
 
