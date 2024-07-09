@@ -106,16 +106,6 @@ def check_params(params):
     params.lang2id = {k: v for v, k in params.id2lang.items()}
     params.n_langs = len(params.langs)
 
-    # Parse kernel sizes
-    assert params.kernel_sizes != ''
-    params.kernel_sizes = list(map(int, params.kernel_sizes.split(',')))
-
-    # Parse fc sizes
-    params.fc_sizes = list(map(int, params.fc_sizes.split(','))) if params.fc_sizes != '' else []
-    assert len(params.fc_sizes) >= 2
-    assert params.fc_sizes[-1] == 1
-    assert params.fc_sizes[0] == params.num_filters * len(params.kernel_sizes)
-
     # check datasets
     required_tst = set(params.langs)
     params.tst_test_dataset = {
