@@ -161,7 +161,7 @@ def load_tst_train_data(params, logger):
     return data
 
 def reload_models(params, logger):
-    reloaded_dae = torch.load(params.model_path)
+    reloaded_dae = torch.load(params.dae_model_path)
     dae_model_params = AttrDict(reloaded_dae['params'])
 
     # update dictionary parameters
