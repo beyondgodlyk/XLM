@@ -216,13 +216,14 @@ def main(params):
 
                 enc1 = encoder('fwd', x=x1, lengths=len1, langs=langs1, causal=False)
                 enc1 = enc1.transpose(0, 1)
-                logger.info("Encoder output shape: %s" % str(enc1.size()))
+                
                 # Clone detached encoder output to be modified iteratively
                 modified_enc1 = enc1.detach().clone()
                 modified_enc1.requires_grad = True
                 modified_enc1 = to_cuda(modified_enc1)
 
                 # logger.info("Original sentence: %s" % get_transferred_sentence(len1, params.tgt_id, enc1, decoder, dico))
+                print(len2)
                 logger.info("Gold sentence: %s" % convert_to_text(x2, len2, dico, params))
 
                 opt = get_optimizer([modified_enc1], params.optimizer)
@@ -246,6 +247,7 @@ def main(params):
                     it += 1
                     assert torch.all(enc1 == modified_enc1) == False, "Modified encoder output is same as original encoder output"
 
+                # TODO : restore segmentation
 
                     
 
