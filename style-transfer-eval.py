@@ -194,7 +194,7 @@ def main(params):
 
     dico, encoder, decoder, classifier = reload_models(params)
 
-    assert params.batch_size == 1
+    # assert params.batch_size == 1
 
     for lang in params.langs:
         for label_pair in [(0, 1), (1, 0)]:
@@ -216,7 +216,7 @@ def main(params):
 
                 enc1 = encoder('fwd', x=x1, lengths=len1, langs=langs1, causal=False)
                 enc1 = enc1.transpose(0, 1)
-
+                logger.info("Encoder output shape: %s" % str(enc1.size()))
                 # Clone detached encoder output to be modified iteratively
                 modified_enc1 = enc1.detach().clone()
                 modified_enc1.requires_grad = True
