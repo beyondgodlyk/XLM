@@ -34,7 +34,7 @@ FASTBPE=$TOOLS_PATH/fastBPE/fast
 BPE_CODES=$PROC_PATH/codes
 FULL_VOCAB=$PROC_PATH/vocab.en-fr
 
-# TST related datasets (train, valid, test) - Note that all datasets are lowercased as well even though it's not in the name
+# TST datasets (train, valid, test) for Classifier training - Note that all datasets are lowercased as well even though it's not in the name
 TST_TRAIN_0_TOK=$TST_PATH/tst.train.0.$SRC.tok
 TST_TRAIN_1_TOK=$TST_PATH/tst.train.1.$SRC.tok
 TST_VALID_0_TOK=$TST_PATH/tst.valid.0.$SRC.tok
@@ -42,7 +42,13 @@ TST_VALID_1_TOK=$TST_PATH/tst.valid.1.$SRC.tok
 TST_TEST_0_TOK=$TST_PATH/tst.test.0.$SRC.tok
 TST_TEST_1_TOK=$TST_PATH/tst.test.1.$SRC.tok
 
-# TST related datasets BPE data
+# TST datasets for evaluation - Note that all datasets are lowercased as well even though it's not in the name
+TST_SRC_TEST_0_1_0_TOK=$TST_PATH/tst.$SRC.test.0-1.0.tok
+TST_SRC_TEST_0_1_1_TOK=$TST_PATH/tst.$SRC.test.0-1.1.tok
+TST_SRC_TEST_1_0_0_TOK=$TST_PATH/tst.$SRC.test.1-0.0.tok
+TST_SRC_TEST_1_0_1_TOK=$TST_PATH/tst.$SRC.test.1-0.1.tok
+
+# TST datasets for Classifier training - BPE data
 TST_TRAIN_0_BPE=$TST_PROC_PATH/tst.train.0.$SRC
 TST_TRAIN_1_BPE=$TST_PROC_PATH/tst.train.1.$SRC
 TST_VALID_0_BPE=$TST_PROC_PATH/tst.valid.0.$SRC
@@ -50,22 +56,37 @@ TST_VALID_1_BPE=$TST_PROC_PATH/tst.valid.1.$SRC
 TST_TEST_0_BPE=$TST_PROC_PATH/tst.test.0.$SRC
 TST_TEST_1_BPE=$TST_PROC_PATH/tst.test.1.$SRC
 
+# TST datasets for evaluation - BPE data
+TST_SRC_TEST_0_1_0_BPE=$TST_PROC_PATH/tst.$SRC.test.0-1.0
+TST_SRC_TEST_0_1_1_BPE=$TST_PROC_PATH/tst.$SRC.test.0-1.1
+TST_SRC_TEST_1_0_0_BPE=$TST_PROC_PATH/tst.$SRC.test.1-0.0
+TST_SRC_TEST_1_0_1_BPE=$TST_PROC_PATH/tst.$SRC.test.1-0.1
+
 # Also contains script to convert into lowercase
 SRC_PREPROCESSING="$REPLACE_UNICODE_PUNCT | $NORM_PUNC -l $SRC | $REM_NON_PRINT_CHAR | $TOKENIZER -l $SRC -no-escape -threads $N_THREADS | $LOWERCASE"
 
 if ! [[ -f "$TST_TRAIN_0_TOK" ]]; then
-  echo "Creating tokenized TST EN data..."
-  eval "cat $YELP_PATH/sentiment.train.0 | $SRC_PREPROCESSING > $TST_TRAIN_0_TOK"
-  eval "cat $YELP_PATH/sentiment.train.1 | $SRC_PREPROCESSING > $TST_TRAIN_1_TOK"
-  eval "cat $YELP_PATH/sentiment.dev.0 | $SRC_PREPROCESSING > $TST_VALID_0_TOK"
-  eval "cat $YELP_PATH/sentiment.dev.1 | $SRC_PREPROCESSING > $TST_VALID_1_TOK"
-  eval "cat $YELP_PATH/sentiment.test.0 | $SRC_PREPROCESSING > $TST_TEST_0_TOK"
-  eval "cat $YELP_PATH/sentiment.test.1 | $SRC_PREPROCESSING > $TST_TEST_1_TOK"
+  echo "Creating tokenized TST EN data for Classifier training..."
+  eval "cat $YELP_PATH/sentiment.train.0.detok | $SRC_PREPROCESSING > $TST_TRAIN_0_TOK"
+  eval "cat $YELP_PATH/sentiment.train.1.detok | $SRC_PREPROCESSING > $TST_TRAIN_1_TOK"
+  eval "cat $YELP_PATH/sentiment.dev.0.detok | $SRC_PREPROCESSING > $TST_VALID_0_TOK"
+  eval "cat $YELP_PATH/sentiment.dev.1.detok | $SRC_PREPROCESSING > $TST_VALID_1_TOK"
+  eval "cat $YELP_PATH/sentiment.test.0.detok | $SRC_PREPROCESSING > $TST_TEST_0_TOK"
+  eval "cat $YELP_PATH/sentiment.test.1.detok | $SRC_PREPROCESSING > $TST_TEST_1_TOK"
+fi
+
+if ! [[ -f "$TST_SRC_TEST_0_1_0_TOK" ]]; then
+  echo "Creating tokenized TST EN data for evaluation..."
+  eval "cat $YELP_PATH/sentiment.test.0.detok | $SRC_PREPROCESSING > $TST_SRC_TEST_0_1_0_TOK"
+  eval "cat $YELP_PATH/human.txt.detok | head -n 500 |$SRC_PREPROCESSING > $TST_SRC_TEST_0_1_1_TOK"
+
+  eval "cat $YELP_PATH/sentiment.test.1.detok | $SRC_PREPROCESSING > $TST_SRC_TEST_1_0_1_TOK"
+  eval "cat $YELP_PATH/human.txt.detok | tail -n 500 |$SRC_PREPROCESSING > $TST_SRC_TEST_1_0_0_TOK"
 fi
 
 # apply BPE codes
 if ! [[ -f "$TST_TRAIN_0_BPE" ]]; then
-  echo "Applying BPE to TST EN data..."
+  echo "Applying BPE to TST EN data for Classifier training..."
   $FASTBPE applybpe $TST_TRAIN_0_BPE $TST_TRAIN_0_TOK $BPE_CODES
   $FASTBPE applybpe $TST_TRAIN_1_BPE $TST_TRAIN_1_TOK $BPE_CODES
   $FASTBPE applybpe $TST_VALID_0_BPE $TST_VALID_0_TOK $BPE_CODES
@@ -74,15 +95,31 @@ if ! [[ -f "$TST_TRAIN_0_BPE" ]]; then
   $FASTBPE applybpe $TST_TEST_1_BPE $TST_TEST_1_TOK $BPE_CODES
 fi
 
+if ! [[ -f "$TST_SRC_TEST_0_1_0_BPE" ]]; then
+  echo "Applying BPE to TST EN data for evaluation..."
+  $FASTBPE applybpe $TST_SRC_TEST_0_1_0_BPE $TST_SRC_TEST_0_1_0_TOK $BPE_CODES
+  $FASTBPE applybpe $TST_SRC_TEST_0_1_1_BPE $TST_SRC_TEST_0_1_1_TOK $BPE_CODES
+  $FASTBPE applybpe $TST_SRC_TEST_1_0_0_BPE $TST_SRC_TEST_1_0_0_TOK $BPE_CODES
+  $FASTBPE applybpe $TST_SRC_TEST_1_0_1_BPE $TST_SRC_TEST_1_0_1_TOK $BPE_CODES
+fi
+
 # binarize data
 if ! [[ -f "$TST_TRAIN_0_BPE.pth" ]]; then
-  echo "Binarizing TST EN data..."
+  echo "Binarizing TST EN data for Classifier training..."
   $MAIN_PATH/preprocess.py $FULL_VOCAB $TST_TRAIN_0_BPE
   $MAIN_PATH/preprocess.py $FULL_VOCAB $TST_TRAIN_1_BPE
   $MAIN_PATH/preprocess.py $FULL_VOCAB $TST_VALID_0_BPE
   $MAIN_PATH/preprocess.py $FULL_VOCAB $TST_VALID_1_BPE
   $MAIN_PATH/preprocess.py $FULL_VOCAB $TST_TEST_0_BPE
   $MAIN_PATH/preprocess.py $FULL_VOCAB $TST_TEST_1_BPE
+fi
+
+if ! [[ -f "$TST_SRC_TEST_0_1_0_BPE.pth" ]]; then
+  echo "Binarizing TST EN data for evaluation..."
+  $MAIN_PATH/preprocess.py $FULL_VOCAB $TST_SRC_TEST_0_1_0_BPE
+  $MAIN_PATH/preprocess.py $FULL_VOCAB $TST_SRC_TEST_0_1_1_BPE
+  $MAIN_PATH/preprocess.py $FULL_VOCAB $TST_SRC_TEST_1_0_0_BPE
+  $MAIN_PATH/preprocess.py $FULL_VOCAB $TST_SRC_TEST_1_0_1_BPE
 fi
 
 #
@@ -99,3 +136,8 @@ echo "    $SRC: $TST_VALID_1_BPE.pth"
 echo "Monostyle domain test data:"
 echo "    $SRC: $TST_TEST_0_BPE.pth"
 echo "    $SRC: $TST_TEST_1_BPE.pth"
+echo "Evaluation data:"
+echo "    $SRC: $TST_SRC_TEST_0_1_0_BPE.pth"
+echo "    $SRC: $TST_SRC_TEST_0_1_1_BPE.pth"
+echo "    $SRC: $TST_SRC_TEST_1_0_0_BPE.pth"
+echo "    $SRC: $TST_SRC_TEST_1_0_1_BPE.pth"
