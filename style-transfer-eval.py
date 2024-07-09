@@ -179,7 +179,7 @@ def reload_models(params):
 
 def get_transferred_sentence(len1, lang2_id, enc, decoder, dico, params):
     generated, lengths = decoder.generate(enc, len1, lang2_id, max_len = params.max_len + 2)
-    return convert_to_text(generated, params.max_len + 2, dico, params)
+    return convert_to_text(generated, torch.tensor([params.max_len + 2]).cuda(), dico, params)
 
 def main(params):
 
@@ -222,8 +222,7 @@ def main(params):
                 modified_enc1 = to_cuda(modified_enc1)
 
                 # logger.info("Original sentence: %s" % get_transferred_sentence(len1, params.tgt_id, enc1, decoder, dico))
-                print(x2)
-                logger.info("Gold sentence: %s" % convert_to_text(x2, len2, dico, params))
+                logger.info("Gold sentence: %s" % convert_to_text(x2, torch.tensor([params.max_len + 2]).cuda(), dico, params))
 
                 opt = get_optimizer([modified_enc1], params.optimizer)
                 it = 0
