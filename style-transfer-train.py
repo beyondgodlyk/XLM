@@ -177,10 +177,16 @@ def reload_models(params, logger):
     params.src_id = dae_model_params.lang2id[params.src_lang]
     params.tgt_id = dae_model_params.lang2id[params.tgt_lang]
 
-    classifier = Classifier(dae_model_params.emb_dim, params.kernel_sizes, params.dropout, params.fc_sizes, params.num_filters, params.max_len).cuda()
+    classifier = Classifier(dae_model_params.emb_dim, 
+                            params.kernel_sizes, 
+                            params.dropout, 
+                            params.fc_sizes, 
+                            params.num_filters, 
+                            params.max_len).cuda()
     logger.debug("Classifier: {}".format(classifier))
     logger.info("Number of parameters (classifier): %i" % sum([p.numel() for p in classifier.parameters() if p.requires_grad]))
 
+    return dico, encoder, decoder, classifier
 
 def main(params):
 
