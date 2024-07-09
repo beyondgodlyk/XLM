@@ -204,11 +204,6 @@ def main(params):
             tgt_iterator = data['tst'][lang][label_pair][1].get_iterator(shuffle=False,
                                                                         group_by_size=False,
                                                                         n_sentences=-1)
-            for src_batch in src_iterator:
-                x1, len1 = src_batch
-                print(len1)
-
-            return
             
             for src_batch, tgt_batch in zip(src_iterator, tgt_iterator):
                 (x1, len1) = src_batch
@@ -228,7 +223,9 @@ def main(params):
                 modified_enc1 = to_cuda(modified_enc1)
 
                 # logger.info("Original sentence: %s" % get_transferred_sentence(len1, params.tgt_id, enc1, decoder, dico))
+                print(x1.size())
                 print(len1)
+                print(x2.size())
                 print(len2)
                 logger.info("Gold sentence: %s" % convert_to_text(x2, len2, dico, params))
 
