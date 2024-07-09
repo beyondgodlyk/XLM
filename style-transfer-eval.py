@@ -110,8 +110,8 @@ def check_params(params):
     required_tst = set(params.langs)
     params.tst_test_dataset = {
         lang: {
-            label_pairs: (os.path.join(params.data_path, 'tst.%s.%s-%s.%s.pth' % (lang, label_pairs[0], label_pairs[1], label_pairs[0])),
-                   os.path.join(params.data_path, 'tst.%s.%s-%s.%s.pth' % (lang, label_pairs[0], label_pairs[1], label_pairs[1])))
+            label_pairs: (os.path.join(params.data_path, 'tst.%s.test.%s-%s.%s.pth' % (lang, label_pairs[0], label_pairs[1], label_pairs[0])),
+                   os.path.join(params.data_path, 'tst.%s.test.%s-%s.%s.pth' % (lang, label_pairs[0], label_pairs[1], label_pairs[1])))
             for label_pairs in [(0, 1), (1, 0)]
         } for lang in params.langs if lang in required_tst
     }
