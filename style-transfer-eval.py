@@ -216,6 +216,10 @@ def main(params):
                 enc1 = encoder('fwd', x=x1, lengths=len1, langs=langs1, causal=False)
                 enc1 = enc1.transpose(0, 1)
 
+                generated, lengths = decoder.generate(enc1, len1, params.tgt_id, max_len=params.max_len + 2)
+
+                return
+
                 # Clone detached encoder output to be modified iteratively
                 modified_enc1 = enc1.detach().clone()
                 modified_enc1.requires_grad = True
