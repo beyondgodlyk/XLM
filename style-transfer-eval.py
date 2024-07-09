@@ -141,9 +141,9 @@ def load_tst_test_data(params, logger):
 
     # TST test data summary
     logger.info('============ Data summary')
-    for label_pair, v in data['tst'].items():
-        for data_set in v.keys():
-            logger.info('{: <18} - {: >5} - {: >12}:{: >10}'.format('TST test data', data_set, '%s-%s' % label_pair, len(v[data_set][0])))
+    for lang, v in data['tst'].items():
+        for label_pair in v.keys():
+            logger.info('{: <18} - {: >5} - {: >12}:{: >10}'.format('TST test data', lang, '%s-%s' % label_pair, len(v[label_pair][0])))
 
     return data
 
