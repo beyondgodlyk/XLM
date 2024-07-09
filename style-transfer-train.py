@@ -1,7 +1,5 @@
 import json
 import os
-import io
-import sys
 import argparse
 import torch
 import random
@@ -44,7 +42,7 @@ def get_parser():
                         help="Use a GELU activation instead of ReLU")
     
     # model / output paths
-    parser.add_argument("--model_path", type=str, default="", help="Model path")
+    parser.add_argument("--dae_model_path", type=str, default="", help="Model path")
     parser.add_argument("--output_path", type=str, default="", help="Output path")
 
     # reload checkpoint
@@ -129,21 +127,19 @@ def check_params(params):
     assert params.fc_sizes[-1] == 1
     assert params.fc_sizes[0] == params.num_filters * len(params.kernel_sizes)
 
-    # check datasets
-    required_tst = set(['en'])
-    params.tst_dataset = {
+    params.tst_train_dataset = {
         lang: {
             splt: (os.path.join(params.data_path, 'tst.%s.0.%s.pth' % (splt, lang)),
                    os.path.join(params.data_path, 'tst.%s.1.%s.pth' % (splt, lang)))
             for splt in ['train', 'valid', 'test']
-        } for lang in params.langs if lang in required_tst
+        } for lang in params.langs
     }
-    for paths in params.tst_dataset.values():
+    for paths in params.tst_train_dataset.values():
         for p1, p2 in paths.values():
             assert os.path.isfile(p1), "%s not found" % p1
             assert os.path.isfile(p2), "%s not found" % p2
 
-def load_tst_data(params, logger):
+def load_tst_train_data(params, logger):
     data = {}
     data['tst'] = {}
 
@@ -156,12 +152,35 @@ def load_tst_data(params, logger):
 
                 data['tst'][label][splt] = TSTDataset(style_data['sentences'], style_data['positions'], params, label)
 
-    # TST data summary
+    # TST train data summary
+    logger.info('============ Data summary')
     for label, v in data['tst'].items():
         for data_set in v.keys():
-            logger.info('{: <18} - {: >5} - {: >12}:{: >10}'.format('TST data', data_set, label, len(v[data_set])))
+            logger.info('{: <18} - {: >5} - {: >12}:{: >10}'.format('TST train data', data_set, label, len(v[data_set])))
 
     return data
+
+def reload_models(params, logger):
+    reloaded_dae = torch.load(params.model_path)
+    dae_model_params = AttrDict(reloaded_dae['params'])
+
+    # update dictionary parameters
+    for name in ['n_words', 'bos_index', 'eos_index', 'pad_index', 'unk_index', 'mask_index']:
+        setattr(params, name, getattr(dae_model_params, name))
+
+    # build dictionary / build encoder / build decoder / reload weights
+    dico = Dictionary(reloaded_dae['dico_id2word'], reloaded_dae['dico_word2id'], reloaded_dae['dico_counts'])
+    encoder = TransformerModel(dae_model_params, dico, is_encoder=True, with_output=True).cuda().eval()
+    decoder = TransformerModel(dae_model_params, dico, is_encoder=False, with_output=True).cuda().eval()
+    encoder.load_state_dict(reloaded_dae['encoder'])
+    decoder.load_state_dict(reloaded_dae['decoder'])
+    params.src_id = dae_model_params.lang2id[params.src_lang]
+    params.tgt_id = dae_model_params.lang2id[params.tgt_lang]
+
+    classifier = Classifier(dae_model_params.emb_dim, params.kernel_sizes, params.dropout, params.fc_sizes, params.num_filters, params.max_len).cuda()
+    logger.debug("Classifier: {}".format(classifier))
+    logger.info("Number of parameters (classifier): %i" % sum([p.numel() for p in classifier.parameters() if p.requires_grad]))
+
 
 def main(params):
 
@@ -171,28 +190,11 @@ def main(params):
     if not os.path.isfile(params.output_path):
         params.output_path = os.path.join(params.dump_path, "%s-%s.txt" % (params.src_lang, params.tgt_lang))
 
-    data = load_tst_data(params, logger)
+    data = load_tst_train_data(params, logger)
 
-    reloaded = torch.load(params.model_path)
-    model_params = AttrDict(reloaded['params'])
+    dico, encoder, decoder, classifier = reload_models(params, logger)
 
-    # update dictionary parameters
-    for name in ['n_words', 'bos_index', 'eos_index', 'pad_index', 'unk_index', 'mask_index']:
-        setattr(params, name, getattr(model_params, name))
-
-    # build dictionary / build encoder / build decoder / reload weights
-    dico = Dictionary(reloaded['dico_id2word'], reloaded['dico_word2id'], reloaded['dico_counts'])
-    encoder = TransformerModel(model_params, dico, is_encoder=True, with_output=True).cuda().eval()
-    decoder = TransformerModel(model_params, dico, is_encoder=False, with_output=True).cuda().eval()
-    encoder.load_state_dict(reloaded['encoder'])
-    decoder.load_state_dict(reloaded['decoder'])
-    params.src_id = model_params.lang2id[params.src_lang]
-    params.tgt_id = model_params.lang2id[params.tgt_lang]
-
-    classifier = Classifier(model_params.emb_dim, params.kernel_sizes, params.dropout, params.fc_sizes, params.num_filters, params.max_len).cuda()
-    logger.debug("Classifier: {}".format(classifier))
-    logger.info("Number of parameters (classifier): %i" % sum([p.numel() for p in classifier.parameters() if p.requires_grad]))
-
+    
     trainer = TSTTrainer(classifier, encoder, decoder, data, params)
     evaluator = TSTEvaluator(trainer, data, params)
 
