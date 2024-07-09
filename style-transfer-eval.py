@@ -177,10 +177,9 @@ def reload_models(params):
 
     return dico, encoder, decoder, classifier
 
-def get_transferred_sentence(len1, lang2_id, enc, decoder, dico):
-    max_len = int(1.5 * len1.max().item() + 10)
-    generated, lengths = decoder.generate(enc, len1, lang2_id, max_len=max_len)
-    return convert_to_text(generated, lengths, dico, params)
+def get_transferred_sentence(len1, lang2_id, enc, decoder, dico, params):
+    generated, lengths = decoder.generate(enc, len1, lang2_id, max_len = params.max_len + 2)
+    return convert_to_text(generated, params.max_len + 2, dico, params)
 
 def main(params):
 
@@ -223,10 +222,7 @@ def main(params):
                 modified_enc1 = to_cuda(modified_enc1)
 
                 # logger.info("Original sentence: %s" % get_transferred_sentence(len1, params.tgt_id, enc1, decoder, dico))
-                print(x1.size())
-                print(len1)
-                print(x2.size())
-                print(len2)
+                print(x2)
                 logger.info("Gold sentence: %s" % convert_to_text(x2, len2, dico, params))
 
                 opt = get_optimizer([modified_enc1], params.optimizer)
