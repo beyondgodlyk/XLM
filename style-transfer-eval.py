@@ -221,7 +221,7 @@ def main(params):
                 modified_enc1.requires_grad = True
                 modified_enc1 = to_cuda(modified_enc1)
 
-                # logger.info("Original sentence: %s" % get_transferred_sentence(len1, params.tgt_id, enc1, decoder, dico))
+                logger.info("Original sentence: %s" % get_transferred_sentence(len1, params.tgt_id, enc1, decoder, dico))
                 logger.info("Gold sentence: %s" % convert_to_text(x2, torch.tensor([params.max_len + 2]).cuda(), dico, params))
 
                 opt = get_optimizer([modified_enc1], params.optimizer)
