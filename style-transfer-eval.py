@@ -198,7 +198,7 @@ def main(params):
     # for Enc-Dec Attention is made using len1.max() which raises RuntimeError
     padded_tensor = torch.tensor([params.eos_index] + [params.pad_index] * params.max_len + [params.eos_index]).unsqueeze(1) 
 
-    # assert params.batch_size == 1
+    assert params.batch_size == 1
 
     for lang in params.langs:
         for label_pair in [(0, 1), (1, 0)]:
@@ -222,14 +222,8 @@ def main(params):
 
                 x1, len1, langs1, x2, len2, langs2 = to_cuda(x1, len1, langs1, x2, len2, langs2)
 
-                logger.info("x1 size: %s, len1 : %s", x1.size(), len1)
-
                 enc1 = encoder('fwd', x=x1, lengths=len1, langs=langs1, causal=False)
                 enc1 = enc1.transpose(0, 1)
-
-                generated, lengths = decoder.generate(enc1, len1, params.tgt_id, max_len=params.max_len + 2)
-
-                return
 
                 # Clone detached encoder output to be modified iteratively
                 modified_enc1 = enc1.detach().clone()
@@ -238,7 +232,7 @@ def main(params):
 
                 logger.info("Original sentence: %s" % get_transferred_sentence(len1, params.tgt_id, enc1, decoder, dico, params))
                 logger.info("Gold sentence: %s" % convert_to_text(x2, torch.tensor([params.max_len + 2]).cuda(), dico, params))
-
+                return
                 opt = get_optimizer([modified_enc1], params.optimizer)
                 it = 0
                 while True:
