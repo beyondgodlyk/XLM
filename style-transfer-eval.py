@@ -213,8 +213,8 @@ def main(params):
                 (x1, len1) = src_batch # x1.size() is (params.max_len + 2, bs), len1.size() is (bs)
                 (x2, len2) = tgt_batch
 
-                logger.info("One sentence: %s" % convert_to_text(x1.cuda(), len.cuda(), dico, params))
-                logger.info("Two sentence: %s" % convert_to_text(x2.cuda(), len.cuda(), dico, params))
+                logger.info("One sentence: %s" % convert_to_text(x1.cuda(), len1.cuda(), dico, params))
+                logger.info("Two sentence: %s" % convert_to_text(x2.cuda(), len2.cuda(), dico, params))
 
                 x1 = torch.cat((x1, padded_tensor), dim=1)
                 len1 = torch.cat((len1, torch.tensor([params.max_len + 2])), dim=0)
