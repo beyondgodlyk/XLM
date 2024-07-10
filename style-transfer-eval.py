@@ -212,6 +212,8 @@ def main(params):
 
                 x1, len1, langs1, x2, len2, langs2 = to_cuda(x1, len1, langs1, x2, len2, langs2)
 
+                logger.info("x1 size: %s, len1 size: %s", x1.size(), len1.size())
+
                 enc1 = encoder('fwd', x=x1, lengths=len1, langs=langs1, causal=False)
                 enc1 = enc1.transpose(0, 1)
 
