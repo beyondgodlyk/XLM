@@ -196,7 +196,7 @@ def main(params):
     # Create a tensor like <EOS> <PAD> <PAD>... <EOS> of size (params.max_len + 2) for 
     # appending to x1 for generating decoder output. This is done because the src_mask 
     # for Enc-Dec Attention is made using len1.max() which raises RuntimeError
-    padded_tensor = torch.tensor([params.eos_index] + [params.pad_index] * params.max_len + [params.eos_index]).unsqueeze(1).cuda() 
+    padded_tensor = torch.tensor([params.eos_index] + [params.pad_index] * params.max_len + [params.eos_index]).unsqueeze(1) 
 
     # assert params.batch_size == 1
 
@@ -212,16 +212,17 @@ def main(params):
             for src_batch, tgt_batch in zip(src_iterator, tgt_iterator):
                 (x1, len1) = src_batch # x1.size() is (params.max_len + 2, bs), len1.size() is (bs)
                 (x2, len2) = tgt_batch
+
+                # Append padded_tensor to x1 and the corresponding length to len1
+                x1 = torch.cat((x1, padded_tensor), dim=1)
+                len1 = torch.cat((len1, torch.tensor([params.max_len + 2])), dim=0)
+
                 langs1 = x1.clone().fill_(params.src_id)
                 langs2 = x2.clone().fill_(params.tgt_id)
 
                 x1, len1, langs1, x2, len2, langs2 = to_cuda(x1, len1, langs1, x2, len2, langs2)
 
-                # Append padded_tensor to x1 and the corresponding length to len1
-                x1 = torch.cat((x1, padded_tensor), dim=1)
-                len1 = torch.cat((len1, torch.tensor([params.max_len + 2]).cuda()), dim=0)
-
-                logger.info("x1 size: %s, len1 size: %s", x1.size(), len1.size())
+                logger.info("x1 size: %s, len1 : %s", x1.size(), len1)
 
                 enc1 = encoder('fwd', x=x1, lengths=len1, langs=langs1, causal=False)
                 enc1 = enc1.transpose(0, 1)
