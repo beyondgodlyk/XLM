@@ -399,7 +399,7 @@ class TransformerModel(nn.Module):
 
         # transformer layers
         for i in range(self.n_layers):
-
+            logger.info("In fwd()")
             # self attention
             attn = self.attentions[i](tensor, attn_mask, cache=cache)
             attn = F.dropout(attn, p=self.dropout, training=self.training)
