@@ -229,7 +229,8 @@ def main(params):
                 modified_enc1 = enc1.detach().clone()
                 modified_enc1.requires_grad = True
                 modified_enc1 = to_cuda(modified_enc1)
-
+                
+                logger.info("modified_enc1.__class__ : %s" % str(modified_enc1.__class__))
                 logger.info("modified_enc1.size() : %s" % str(modified_enc1.size()))
 
                 logger.info("Original sentence: %s" % get_transferred_sentence(len1, params.tgt_id, enc1, decoder, dico, params))
