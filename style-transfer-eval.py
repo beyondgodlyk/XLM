@@ -201,7 +201,7 @@ def main(params):
     assert params.batch_size == 1
 
     for lang in params.langs:
-        for label_pair in [(1, 0), (0, 1)]:
+        for label_pair in [(0, 1), (1, 0)]:
             src_iterator = data['tst'][lang][label_pair][0].get_iterator(shuffle=False, 
                                                                         group_by_size=False, 
                                                                         n_sentences=-1)
