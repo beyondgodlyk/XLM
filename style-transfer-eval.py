@@ -228,11 +228,8 @@ def main(params):
                 # Clone detached encoder output to be modified iteratively
                 modified_enc1 = enc1.detach().clone()
                 modified_enc1.requires_grad = True
-                modified_enc1 = to_cuda(modified_enc1)
 
-                logger.info("enc1.__class__ : %s" % str(enc1.__class__))
-                logger.info("modified_enc1.__class__ : %s" % str(modified_enc1.__class__))
-                logger.info("modified_enc1.size() : %s" % str(modified_enc1.size()))
+                modified_enc1 = modified_enc1.cuda()
 
                 logger.info("Original sentence: %s" % get_transferred_sentence(len1, params.tgt_id, enc1, decoder, dico, params))
                 logger.info("Gold sentence: %s" % convert_to_text(x2, torch.tensor([params.max_len + 2]).cuda(), dico, params))
