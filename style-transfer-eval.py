@@ -213,6 +213,24 @@ def main(params):
                 (x1, len1) = src_batch # x1.size() is (params.max_len + 2, bs), len1.size() is (bs)
                 (x2, len2) = tgt_batch
 
+                langs1 = x1.clone().fill_(params.src_id)
+                langs2 = x2.clone().fill_(params.tgt_id)
+
+                enc1 = encoder('fwd', x=x1, lengths=len1, langs=langs1, causal=False)
+                enc1 = enc1.transpose(0, 1)
+
+                enc2 = encoder('fwd', x=x2, lengths=len2, langs=langs2, causal=False)
+                enc2 = enc2.transpose(0, 1)
+
+                pred1 = classifier(enc1).squeeze(1)
+                pred2 = classifier(enc2).squeeze(1)
+
+                logger.info("One sentence: %s" % get_transferred_sentence(len1, params.tgt_id, enc1, decoder, dico, params))
+                logger.info("Two sentence: %s" % get_transferred_sentence(len2, params.src_id, enc2, decoder, dico, params))
+                logger.info("One pred: %f, Two pred: %f" % (pred1[0], pred2[0]))
+                
+                return
+
                 # Append padded_tensor to x1 and the corresponding length to len1
                 x1 = torch.cat((x1, padded_tensor), dim=1)
                 len1 = torch.cat((len1, torch.tensor([params.max_len + 2])), dim=0)
