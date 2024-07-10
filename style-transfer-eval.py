@@ -213,6 +213,12 @@ def main(params):
                 (x1, len1) = src_batch # x1.size() is (params.max_len + 2, bs), len1.size() is (bs)
                 (x2, len2) = tgt_batch
 
+                x1 = torch.cat((x1, padded_tensor), dim=1)
+                len1 = torch.cat((len1, torch.tensor([params.max_len + 2])), dim=0)
+
+                x2 = torch.cat((x2, padded_tensor), dim=1)
+                len2 = torch.cat((len2, torch.tensor([params.max_len + 2])), dim=0)
+
                 langs1 = x1.clone().fill_(params.src_id)
                 langs2 = x2.clone().fill_(params.tgt_id)
 
