@@ -209,6 +209,9 @@ class MultiHeadAttention(nn.Module):
         q = q / math.sqrt(dim_per_head)                                       # (bs, n_heads, qlen, dim_per_head)
         scores = torch.matmul(q, k.transpose(2, 3))                           # (bs, n_heads, qlen, klen)
         logger.info('In MHA forward()')
+        logger.info('mask shape: %s', mask.shape)
+        logger.info('scores shape: %s', scores.shape)
+        logger.info('mask_reshape shape: %s', mask_reshape.shape)
         mask = (mask == 0).view(mask_reshape).expand_as(scores)               # (bs, n_heads, qlen, klen)
         scores.masked_fill_(mask, -float('inf'))                              # (bs, n_heads, qlen, klen)
 
