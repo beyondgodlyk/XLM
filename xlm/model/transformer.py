@@ -208,7 +208,7 @@ class MultiHeadAttention(nn.Module):
 
         q = q / math.sqrt(dim_per_head)                                       # (bs, n_heads, qlen, dim_per_head)
         scores = torch.matmul(q, k.transpose(2, 3))                           # (bs, n_heads, qlen, klen)
-        if mask.dim() == 3:
+        if mask.dim() != 3:
             logger.info("Mask dimension is 3 in MHA forward()")
             logger.warn('In MultiHeadAttention.forward()')
             logger.warn('mask shape: %s', mask.shape)
