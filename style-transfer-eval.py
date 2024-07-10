@@ -219,29 +219,9 @@ def main(params):
                 x2 = torch.cat((x2, padded_tensor), dim=1)
                 len2 = torch.cat((len2, torch.tensor([params.max_len + 2])), dim=0)
 
-                langs1 = x1.clone().fill_(params.src_id)
-                langs2 = x2.clone().fill_(params.tgt_id)
-
-                x1, len1, langs1, x2, len2, langs2 = to_cuda(x1, len1, langs1, x2, len2, langs2)
-
-                enc1 = encoder('fwd', x=x1, lengths=len1, langs=langs1, causal=False)
-                enc1 = enc1.transpose(0, 1)
-
-                enc2 = encoder('fwd', x=x2, lengths=len2, langs=langs2, causal=False)
-                enc2 = enc2.transpose(0, 1)
-
-                pred1 = classifier(enc1).squeeze(1)
-                pred2 = classifier(enc2).squeeze(1)
-
-                logger.info("One sentence: %s" % convert_to_text(x1, len1, dico, params)[0])
-                logger.info("Two sentence: %s" % convert_to_text(x2, len2, dico, params)[0])
-                logger.info("One pred: %f, Two pred: %f" % (pred1[0], pred2[0]))
+                logger.info("Original sentence: %s" % convert_to_text(x1, len1, dico, params)[0])
+                logger.info("Gold sentence: %s" % convert_to_text(x2, len2, dico, params)[0])
                 logger.info("")
-                continue
-
-                # Append padded_tensor to x1 and the corresponding length to len1
-                x1 = torch.cat((x1, padded_tensor), dim=1)
-                len1 = torch.cat((len1, torch.tensor([params.max_len + 2])), dim=0)
 
                 langs1 = x1.clone().fill_(params.src_id)
                 langs2 = x2.clone().fill_(params.tgt_id)
@@ -256,9 +236,6 @@ def main(params):
                 modified_enc1.requires_grad = True
 
                 modified_enc1 = modified_enc1.cuda()
-
-                logger.info("Original sentence: %s" % get_transferred_sentence(len1, params.tgt_id, enc1, decoder, dico, params))
-                logger.info("Gold sentence: %s" % convert_to_text(x2, torch.tensor([params.max_len + 2]).cuda(), dico, params))
                 
                 opt = get_optimizer([modified_enc1], params.optimizer)
                 it = 0
@@ -274,12 +251,13 @@ def main(params):
 
                     loss[0].backward()
 
-                    clip_grad_norm_([modified_enc1], params.clip_grad_norm)
+                    # clip_grad_norm_([modified_enc1], params.clip_grad_norm)
                     opt.step()
                     it += 1
                     assert torch.all(enc1 == modified_enc1) == False, "Modified encoder output is same as original encoder output"
                     logger.info("Modified sentence: %s" % get_transferred_sentence(len1, params.tgt_id, modified_enc1, decoder, dico, params))
-
+                    if it >= 50:
+                        break
                 # TODO : restore segmentation
 
                     
