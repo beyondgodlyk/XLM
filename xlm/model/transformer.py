@@ -500,6 +500,7 @@ class TransformerModel(nn.Module):
         cache = {'slen': 0}
 
         while cur_len < max_len:
+            logger.info("")
             logger.info("In generate()")
             # compute word scores
             tensor = self.forward(
