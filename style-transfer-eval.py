@@ -234,7 +234,7 @@ def main(params):
                 pred2 = classifier(enc2).squeeze(1)
 
                 logger.info("One sentence: %s" % convert_to_text(x1, len1, dico, params)[0])
-                logger.info("Two sentence: %s" % convert_to_text(x2, len2, dico, params)[1])
+                logger.info("Two sentence: %s" % convert_to_text(x2, len2, dico, params)[0])
                 logger.info("One pred: %f, Two pred: %f" % (pred1[0], pred2[0]))
 
                 continue
