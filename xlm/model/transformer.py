@@ -208,24 +208,7 @@ class MultiHeadAttention(nn.Module):
 
         q = q / math.sqrt(dim_per_head)                                       # (bs, n_heads, qlen, dim_per_head)
         scores = torch.matmul(q, k.transpose(2, 3))                           # (bs, n_heads, qlen, klen)
-        
-        logger.info("Mask dimension is %s", mask.dim())
-        logger.warn('In MultiHeadAttention.forward()')
-        logger.warn('mask shape: %s', mask.shape)
-        logger.warn('scores shape: %s', scores.shape)
-        logger.warn('mask_reshape: %s', mask_reshape)
-        try:
-            mask = (mask == 0).view(mask_reshape).expand_as(scores)               # (bs, n_heads, qlen, klen)
-        except:
-            logger.warn('In except block')
-            logger.warn('Mask dimension is: %s', mask.dim())
-            logger.warn('In MultiHeadAttention.forward()')
-            logger.warn('mask shape: %s', mask.shape)
-            logger.warn('scores shape: %s', scores.shape)
-            logger.warn('mask_reshape: %s', mask_reshape)
-            t = (mask == 0).view(mask_reshape)
-            u = t.expand_as(scores)
-            raise
+        mask = (mask == 0).view(mask_reshape).expand_as(scores)               # (bs, n_heads, qlen, klen)
         scores.masked_fill_(mask, -float('inf'))                              # (bs, n_heads, qlen, klen)
 
         weights = F.softmax(scores.float(), dim=-1).type_as(scores)           # (bs, n_heads, qlen, klen)
@@ -371,10 +354,7 @@ class TransformerModel(nn.Module):
         # generate masks
         mask, attn_mask = get_masks(slen, lengths, causal)
         if self.is_decoder and src_enc is not None:
-            logger.warn('In fwd()')
             src_mask = torch.arange(src_len.max(), dtype=torch.long, device=lengths.device) < src_len[:, None]
-            logger.warn('src_enc shape: %s and src_len.max: %s and src_mask size: %s', src_enc.shape, src_len.max(), src_mask.size())
-
 
         # positions
         if positions is None:
@@ -410,6 +390,7 @@ class TransformerModel(nn.Module):
 
         # transformer layers
         for i in range(self.n_layers):
+
             # self attention
             attn = self.attentions[i](tensor, attn_mask, cache=cache)
             attn = F.dropout(attn, p=self.dropout, training=self.training)
@@ -418,7 +399,6 @@ class TransformerModel(nn.Module):
 
             # encoder attention (for decoder only)
             if self.is_decoder and src_enc is not None:
-                logger.info("In fwd()")
                 attn = self.encoder_attn[i](tensor, src_mask, kv=src_enc, cache=cache)
                 attn = F.dropout(attn, p=self.dropout, training=self.training)
                 tensor = tensor + attn
@@ -503,8 +483,7 @@ class TransformerModel(nn.Module):
         cache = {'slen': 0}
 
         while cur_len < max_len:
-            logger.info("")
-            logger.info("In generate()")
+
             # compute word scores
             tensor = self.forward(
                 'fwd',
