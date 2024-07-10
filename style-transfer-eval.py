@@ -239,9 +239,7 @@ def main(params):
                 while True:
                     pred = classifier(modified_enc1).squeeze(1)
                     loss = F.binary_cross_entropy(pred, torch.Tensor([label_pair[1]]).repeat(pred.size()).cuda(), reduction='none')
-                    logger.info(loss[0].item())
                     logger.info("Iteration %d, Pred: %f, Loss: %f" % (it, pred[0], loss[0].item()))
-                    logger.info("Modified sentence: %s" % get_transferred_sentence(len1, params.tgt_id, modified_enc1, decoder, dico))
                 
                     if loss[0].item() < 0.1:
                         break
@@ -255,6 +253,7 @@ def main(params):
                     opt.step()
                     it += 1
                     assert torch.all(enc1 == modified_enc1) == False, "Modified encoder output is same as original encoder output"
+                    logger.info("Modified sentence: %s" % get_transferred_sentence(len1, params.tgt_id, modified_enc1, decoder, dico, params))
 
                 # TODO : restore segmentation
 
