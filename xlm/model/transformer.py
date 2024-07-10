@@ -209,8 +209,7 @@ class MultiHeadAttention(nn.Module):
         q = q / math.sqrt(dim_per_head)                                       # (bs, n_heads, qlen, dim_per_head)
         scores = torch.matmul(q, k.transpose(2, 3))                           # (bs, n_heads, qlen, klen)
         if mask.dim() == 3:
-            z = mask.clone()
-            t = (z == 0).view(mask_reshape)
+            t = (mask == 0).view(mask_reshape)
             u = t.expand_as(scores)
             logger.info('In MultiHeadAttention.forward()')
             logger.info('mask shape: %s', mask.shape)
