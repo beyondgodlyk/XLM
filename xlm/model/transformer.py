@@ -217,6 +217,7 @@ class MultiHeadAttention(nn.Module):
         try:
             mask = (mask == 0).view(mask_reshape).expand_as(scores)               # (bs, n_heads, qlen, klen)
         except:
+            logger.warn('Mask dimension is: %s', mask.dim())
             logger.warn('In MultiHeadAttention.forward()')
             logger.warn('mask shape: %s', mask.shape)
             logger.warn('scores shape: %s', scores.shape)
