@@ -208,7 +208,7 @@ class MultiHeadAttention(nn.Module):
 
         q = q / math.sqrt(dim_per_head)                                       # (bs, n_heads, qlen, dim_per_head)
         scores = torch.matmul(q, k.transpose(2, 3))                           # (bs, n_heads, qlen, klen)
-        print('In MHA forward()')
+        logger.info('In MHA forward()')
         mask = (mask == 0).view(mask_reshape).expand_as(scores)               # (bs, n_heads, qlen, klen)
         scores.masked_fill_(mask, -float('inf'))                              # (bs, n_heads, qlen, klen)
 
@@ -400,7 +400,7 @@ class TransformerModel(nn.Module):
 
             # encoder attention (for decoder only)
             if self.is_decoder and src_enc is not None:
-                print("In fwd()")
+                logger.info("In fwd()")
                 attn = self.encoder_attn[i](tensor, src_mask, kv=src_enc, cache=cache)
                 attn = F.dropout(attn, p=self.dropout, training=self.training)
                 tensor = tensor + attn
@@ -485,7 +485,7 @@ class TransformerModel(nn.Module):
         cache = {'slen': 0}
 
         while cur_len < max_len:
-            print("In generate()")
+            logger.info("In generate()")
             # compute word scores
             tensor = self.forward(
                 'fwd',
