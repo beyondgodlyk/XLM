@@ -193,6 +193,11 @@ def main(params):
 
     dico, encoder, decoder, classifier = reload_models(params)
 
+    # Create a tensor like <EOS> <PAD> <PAD>... <EOS> of size (params.max_len + 2) for 
+    # appending to x1 for generating decoder output. This is done because the src_mask 
+    # for Enc-Dec Attention is made using len1.max() which raises RuntimeError
+    padded_tensor = torch.tensor([params.eos_index] + [params.pad_index] * params.max_len + [params.eos_index]).unsqueeze(1).cuda() 
+
     # assert params.batch_size == 1
 
     for lang in params.langs:
@@ -205,10 +210,13 @@ def main(params):
                                                                         n_sentences=-1)
             
             for src_batch, tgt_batch in zip(src_iterator, tgt_iterator):
-                (x1, len1) = src_batch
+                (x1, len1) = src_batch # x1.size() is (params.max_len + 2, bs), len1.size() is (bs)
                 (x2, len2) = tgt_batch
                 langs1 = x1.clone().fill_(params.src_id)
                 langs2 = x2.clone().fill_(params.tgt_id)
+
+                x1 = torch.cat((x1, padded_tensor), dim=1)
+                len1 = torch.cat((len1, torch.tensor([params.max_len + 2]).cuda()), dim=0)
 
                 x1, len1, langs1, x2, len2, langs2 = to_cuda(x1, len1, langs1, x2, len2, langs2)
 
