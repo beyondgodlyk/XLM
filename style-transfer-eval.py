@@ -207,7 +207,6 @@ def main(params):
             for src_batch, tgt_batch in zip(src_iterator, tgt_iterator):
                 (x1, len1) = src_batch
                 (x2, len2) = tgt_batch
-                print(len1)
                 langs1 = x1.clone().fill_(params.src_id)
                 langs2 = x2.clone().fill_(params.tgt_id)
 
