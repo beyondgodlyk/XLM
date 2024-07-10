@@ -211,12 +211,12 @@ class MultiHeadAttention(nn.Module):
         try:
             mask = (mask == 0).view(mask_reshape).expand_as(scores)               # (bs, n_heads, qlen, klen)
         except:
+            logger.warn('In MultiHeadAttention.forward()')
+            logger.warn('mask shape: %s', mask.shape)
+            logger.warn('scores shape: %s', scores.shape)
+            logger.warn('mask_reshape: %s', mask_reshape)
             t = (mask == 0).view(mask_reshape)
             u = t.expand_as(scores)
-            logger.info('In MultiHeadAttention.forward()')
-            logger.info('mask shape: %s', mask.shape)
-            logger.info('scores shape: %s', scores.shape)
-            logger.info('mask_reshape: %s', mask_reshape)
             raise
         scores.masked_fill_(mask, -float('inf'))                              # (bs, n_heads, qlen, klen)
 
