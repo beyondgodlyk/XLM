@@ -239,11 +239,11 @@ def main(params):
                 while True:
                     pred = classifier(modified_enc1).squeeze(1)
                     loss = F.binary_cross_entropy(pred, torch.Tensor([label_pair[1]]).repeat(pred.size()).cuda(), reduction='none')
-                    logger.info(loss.item())
-                    logger.info("Iteration %d, Pred: %f, Loss: %f" % (it, pred[0], loss.item()))
+                    logger.info(loss[0].item())
+                    logger.info("Iteration %d, Pred: %f, Loss: %f" % (it, pred[0], loss[0].item()))
                     logger.info("Modified sentence: %s" % get_transferred_sentence(len1, params.tgt_id, modified_enc1, decoder, dico))
                 
-                    if loss.item() < 0.1:
+                    if loss[0].item() < 0.1:
                         break
 
                     opt.zero_grad()
