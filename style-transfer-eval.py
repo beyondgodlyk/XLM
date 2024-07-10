@@ -255,7 +255,7 @@ def main(params):
                     opt.step()
                     it += 1
                     assert torch.all(enc1 == modified_enc1) == False, "Modified encoder output is same as original encoder output"
-                    logger.info("Modified sentence: %s" % get_transferred_sentence(len1, params.tgt_id, modified_enc1, decoder, dico, params))
+                    logger.info("Modified sentence: %s" % get_transferred_sentence(len1, params.tgt_id, modified_enc1, decoder, dico, params)[0])
                     if it >= 50:
                         break
                 # TODO : restore segmentation
