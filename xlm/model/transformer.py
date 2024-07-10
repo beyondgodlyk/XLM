@@ -371,7 +371,8 @@ class TransformerModel(nn.Module):
         # generate masks
         mask, attn_mask = get_masks(slen, lengths, causal)
         if self.is_decoder and src_enc is not None:
-            logger.warn('In fwd()', src_enc.size(), src_len)
+            logger.warn('In fwd()')
+            logger.warn('src_enc shape: %s and src_len: %s', src_enc.shape, src_len)
             src_mask = torch.arange(src_len.max(), dtype=torch.long, device=lengths.device) < src_len[:, None]
 
         # positions
