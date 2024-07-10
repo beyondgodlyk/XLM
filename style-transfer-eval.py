@@ -256,9 +256,11 @@ def main(params):
                     clip_grad_norm_([modified_enc1], params.clip_grad_norm)
                     opt.step()
                     it += 1
-                    assert torch.all(prev_modified_enc1 == modified_enc1) == False, "Modified encoder output has not changed"
                     logger.info("Modified sentence: %s" % 
                                 get_transferred_sentence(len1, params.tgt_id, modified_enc1, decoder, dico, params)[0])
+                    logger.info("Norm of gradient of modified_enc1: %f" % modified_enc1.grad.norm().item())
+                    assert torch.all(prev_modified_enc1 == modified_enc1) == False, "Modified encoder output has not changed"
+                    
                     if it >= 500:
                         break
                 # TODO : restore segmentation
