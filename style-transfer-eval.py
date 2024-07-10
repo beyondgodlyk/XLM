@@ -216,6 +216,8 @@ def main(params):
                 langs1 = x1.clone().fill_(params.src_id)
                 langs2 = x2.clone().fill_(params.tgt_id)
 
+                x1, len1, langs1, x2, len2, langs2 = to_cuda(x1, len1, langs1, x2, len2, langs2)
+
                 enc1 = encoder('fwd', x=x1, lengths=len1, langs=langs1, causal=False)
                 enc1 = enc1.transpose(0, 1)
 
@@ -228,7 +230,7 @@ def main(params):
                 logger.info("One sentence: %s" % get_transferred_sentence(len1, params.tgt_id, enc1, decoder, dico, params))
                 logger.info("Two sentence: %s" % get_transferred_sentence(len2, params.src_id, enc2, decoder, dico, params))
                 logger.info("One pred: %f, Two pred: %f" % (pred1[0], pred2[0]))
-                
+
                 return
 
                 # Append padded_tensor to x1 and the corresponding length to len1
