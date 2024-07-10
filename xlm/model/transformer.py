@@ -208,6 +208,12 @@ class MultiHeadAttention(nn.Module):
 
         q = q / math.sqrt(dim_per_head)                                       # (bs, n_heads, qlen, dim_per_head)
         scores = torch.matmul(q, k.transpose(2, 3))                           # (bs, n_heads, qlen, klen)
+        if mask.dim() == 3:
+            logger.info("Mask dimension is 3 in MHA forward()")
+            logger.warn('In MultiHeadAttention.forward()')
+            logger.warn('mask shape: %s', mask.shape)
+            logger.warn('scores shape: %s', scores.shape)
+            logger.warn('mask_reshape: %s', mask_reshape)
         try:
             mask = (mask == 0).view(mask_reshape).expand_as(scores)               # (bs, n_heads, qlen, klen)
         except:
@@ -399,7 +405,6 @@ class TransformerModel(nn.Module):
 
         # transformer layers
         for i in range(self.n_layers):
-            logger.info("In fwd()")
             # self attention
             attn = self.attentions[i](tensor, attn_mask, cache=cache)
             attn = F.dropout(attn, p=self.dropout, training=self.training)
