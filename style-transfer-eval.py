@@ -237,7 +237,7 @@ def main(params):
                 logger.info("Two sentence: %s" % get_transferred_sentence(len2, params.src_id, enc2, decoder, dico, params))
                 logger.info("One pred: %f, Two pred: %f" % (pred1[0], pred2[0]))
 
-                return
+                continue
 
                 # Append padded_tensor to x1 and the corresponding length to len1
                 x1 = torch.cat((x1, padded_tensor), dim=1)
