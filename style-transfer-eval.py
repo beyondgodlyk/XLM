@@ -245,7 +245,7 @@ def main(params):
                     pred = classifier(modified_enc1).squeeze(1)
                     loss = F.binary_cross_entropy(pred, torch.Tensor([label_pair[1]]).repeat(pred.size()).cuda(), reduction='none')
                 
-                    if loss[0].item() < 0.01:
+                    if loss[0].item() < 0.000001:
                         break
 
                     opt.zero_grad()
