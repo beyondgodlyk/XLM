@@ -257,7 +257,7 @@ def main(params):
                     logger.info("Iteration %d, Pred: %f, Loss: %f, Gradient Norm: %f" % (it, pred[0], loss[0].item(), modified_enc1.grad.norm().item()))
                     logger.info("Modified sentence: %s" % 
                                 get_transferred_sentence(len1, params.tgt_id, modified_enc1, decoder, dico, params)[0])
-                    logger.inf("")
+                    logger.info("")
 
                     assert torch.all(prev_modified_enc1 == modified_enc1) == False, "Modified encoder output has not changed"
                     
