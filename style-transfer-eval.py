@@ -218,7 +218,7 @@ def main(params):
 
                 x2 = torch.cat((x2, padded_tensor), dim=1)
                 len2 = torch.cat((len2, torch.tensor([params.max_len + 2])), dim=0)
-
+                logger.info("=================================================================")
                 logger.info("Original sentence: %s" % convert_to_text(x1, len1, dico, params)[0])
                 logger.info("Gold sentence: %s" % convert_to_text(x2, len2, dico, params)[0])
                 logger.info("")
