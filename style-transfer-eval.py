@@ -264,7 +264,7 @@ def main(params):
                         logger.info("Modified encoder output has not changed. Continuing")
                         break
                     it += 1
-                    if it >= 50:
+                    if it >= 200:
                         break
                 # TODO : restore segmentation
 
