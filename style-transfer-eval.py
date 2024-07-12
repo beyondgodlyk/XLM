@@ -254,8 +254,8 @@ def main(params):
                         clip_grad_norm_([modified_enc1], params.clip_grad_norm)
                     opt.step()
                     logger.info("Iteration %d, Pred: %.10f, Loss: %.20f, Gradient Norm: %.20f, Max: %.5f, Min: %.5f" % 
-                                (it, pred[0], loss[0].item(), LA.matrix_norm(modified_enc1.grad.data), 
-                                 LA.matrix_norm(modified_enc1, ord=2), LA.matrix_norm(modified_enc1, ord=-2)))
+                                (it, pred[0], loss[0].item(), LA.matrix_norm(modified_enc1.grad.data).item(), 
+                                 LA.matrix_norm(modified_enc1, ord=2).item(), LA.matrix_norm(modified_enc1, ord=-2).item()))
                     logger.info("Modified sentence: %s" % 
                                 get_transferred_sentence(len1, params.tgt_id, modified_enc1, decoder, dico, params)[0])
                     logger.info("")
