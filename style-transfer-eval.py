@@ -259,9 +259,9 @@ def main(params):
                                 get_transferred_sentence(len1, params.tgt_id, modified_enc1, decoder, dico, params)[0])
                     logger.info("")
 
-                    if torch.all(prev_modified_enc1 == modified_enc1) == False:
+                    if torch.all(prev_modified_enc1 == modified_enc1) == True:
                         logger.info("Modified encoder output has not changed. Continuing")
-                    
+                        break
                     it += 1
                     if it >= 500:
                         break
