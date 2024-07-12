@@ -251,8 +251,8 @@ def main(params):
                     opt.zero_grad()
 
                     loss[0].backward()
-
-                    clip_grad_norm_([modified_enc1], params.clip_grad_norm)
+                    if params.clip_grad_norm > 0:
+                        clip_grad_norm_([modified_enc1], params.clip_grad_norm)
                     opt.step()
                     logger.info("Iteration %d, Pred: %f, Loss: %f, Gradient Norm: %f" % (it, pred[0], loss[0].item(), modified_enc1.grad.norm().item()))
                     logger.info("Modified sentence: %s" % 
