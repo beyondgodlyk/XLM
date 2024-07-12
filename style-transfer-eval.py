@@ -253,7 +253,7 @@ def main(params):
                     if params.clip_grad_norm > 0:
                         clip_grad_norm_([modified_enc1], params.clip_grad_norm)
                     opt.step()
-                    logger.info(LA.matrix_norm(modified_enc1.grad.data).item())
+                    logger.info(LA.matrix_norm(modified_enc1.grad.data))
                     logger.info("Iteration %d, Pred: %.10f, Loss: %.20f, Gradient Norm: %.20f, Max: %.5f, Min: %.5f" % 
                                 (it, pred[0], loss[0].item(), LA.matrix_norm(modified_enc1.grad.data).item(), 
                                  LA.matrix_norm(modified_enc1, ord=2).item(), LA.matrix_norm(modified_enc1, ord=-2).item()))
