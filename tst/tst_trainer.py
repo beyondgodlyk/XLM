@@ -16,7 +16,7 @@ class TSTTrainer(Trainer):
         """
         Initialize trainer.
         """
-        self.MODEL_NAMES = ["classifier"]
+        self.MODEL_NAMES = ['encoder', 'decoder', 'classifier']
 
         self.classifier = classifier
         self.encoder = encoder
