@@ -170,8 +170,8 @@ def reload_models(params, logger):
 
     # build dictionary / build encoder / build decoder / reload weights
     dico = Dictionary(reloaded_dae['dico_id2word'], reloaded_dae['dico_word2id'], reloaded_dae['dico_counts'])
-    encoder = TransformerModel(dae_model_params, dico, is_encoder=True, with_output=True).cuda()
-    decoder = TransformerModel(dae_model_params, dico, is_encoder=False, with_output=True).cuda()
+    encoder = TransformerModel(dae_model_params, dico, is_encoder=True, with_output=True).cuda().eval()
+    decoder = TransformerModel(dae_model_params, dico, is_encoder=False, with_output=True).cuda().eval()
     encoder.load_state_dict(reloaded_dae['encoder'])
     decoder.load_state_dict(reloaded_dae['decoder'])
     params.src_id = dae_model_params.lang2id[params.src_lang]
@@ -183,11 +183,8 @@ def reload_models(params, logger):
                             params.fc_sizes, 
                             params.num_filters, 
                             params.max_len).cuda()
-    logger.info("Classifier: {}".format(classifier))
-
+    logger.debug("Classifier: {}".format(classifier))
     logger.info("Number of parameters (classifier): %i" % sum([p.numel() for p in classifier.parameters() if p.requires_grad]))
-    logger.info("Number of parameters (encoder): %i" % sum([p.numel() for p in encoder.parameters() if p.requires_grad]))
-    logger.info("Number of parameters (decoder): %i" % sum([p.numel() for p in decoder.parameters() if p.requires_grad]))
 
     return dico, encoder, decoder, classifier
 
@@ -201,7 +198,7 @@ def main(params):
 
     data = load_tst_train_data(params, logger)
 
-    _, encoder, decoder, classifier = reload_models(params, logger)
+    dico, encoder, decoder, classifier = reload_models(params, logger)
 
     
     trainer = TSTTrainer(classifier, encoder, decoder, data, params)
