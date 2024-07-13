@@ -253,8 +253,8 @@ def main(params):
                     if params.clip_grad_norm > 0:
                         clip_grad_norm_([modified_enc1], params.clip_grad_norm)
                     opt.step()
-                    assert len(opt.param_groups) == 1
-                    logger.info("Iteration %d, Pred: %.4e, Loss: %.4e, Gradient Norm: %.4e, LR: %.4e" % 
+                    
+                    logger.info("Iteration %d, Pred: %.20f, Loss: %.20f, Gradient Norm: %.4e, LR: %.4e" % 
                                 (it, pred[0], loss[0].item(), LA.matrix_norm(modified_enc1.grad.data)[0].item(), 
                                  opt.param_groups[0]['lr']))
                     logger.info("Modified sentence: %s" % 
