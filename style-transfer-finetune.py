@@ -201,10 +201,8 @@ def get_parser():
                         help="Accumulate model gradients over N iterations (N times larger batch sizes)")
     
     # classifier parameters
-    parser.add_argument("--kernel_sizes", type=str, default="2,3,4,5",
+    parser.add_argument("--kernel_sizes", type=str, default="1,2,3,4,5",
                         help="Kernel sizes for the CNN classifier")
-    parser.add_argument("--dropout", type=float, default=0.1,
-                        help="Dropout for the CNN classifier")
     parser.add_argument("--fc_sizes", type=str, default="1280,512,100,50,1",
                         help="Fully connected layer sizes for the CNN classifier")
     parser.add_argument("--num_filters", type=int, default=256,
