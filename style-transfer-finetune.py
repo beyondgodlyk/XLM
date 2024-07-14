@@ -38,8 +38,8 @@ def check_classifier_params(params):
 
     params.tst_train_dataset = {
         lang: {
-            splt: (os.path.join(params.data_path, 'tst.%s.0.%s.pth' % (splt, lang)),
-                   os.path.join(params.data_path, 'tst.%s.1.%s.pth' % (splt, lang)))
+            splt: (os.path.join(params.data_path, 'tst/tst.%s.0.%s.pth' % (splt, lang)),
+                   os.path.join(params.data_path, 'tst/tst.%s.1.%s.pth' % (splt, lang)))
             for splt in ['train', 'valid', 'test']
         } for lang in params.langs
     }
