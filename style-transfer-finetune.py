@@ -25,6 +25,7 @@ from tst.classifier import Classifier
 
 def check_classifier_params(params):
     params.labels = [0, 1]
+    params.tst_langs = ['en']
 
     # Parse kernel sizes
     assert params.kernel_sizes != ''
@@ -37,11 +38,11 @@ def check_classifier_params(params):
     assert params.fc_sizes[0] == params.num_filters * len(params.kernel_sizes)
 
     params.tst_train_dataset = {
-        lang: {
-            splt: (os.path.join(params.data_path, 'tst/tst.%s.0.%s.pth' % (splt, lang)),
-                   os.path.join(params.data_path, 'tst/tst.%s.1.%s.pth' % (splt, lang)))
+        tst_lang: {
+            splt: (os.path.join(params.data_path, 'tst/tst.%s.0.%s.pth' % (splt, tst_lang)),
+                   os.path.join(params.data_path, 'tst/tst.%s.1.%s.pth' % (splt, tst_lang)))
             for splt in ['train', 'valid', 'test']
-        } for lang in params.langs
+        } for tst_lang in params.tst_langs
     }
     for paths in params.tst_train_dataset.values():
         for p1, p2 in paths.values():
@@ -53,11 +54,11 @@ def load_tst_data(params, logger):
     data = {}
     data['tst'] = {}
 
-    for lang in params.langs:
+    for tst_lang in params.tst_langs:
         for label in params.labels:
             data['tst'][label] = {}
             for splt in ['train', 'valid', 'test']:
-                style_data = load_binarized(params.tst_train_dataset[lang][splt][label], params)
+                style_data = load_binarized(params.tst_train_dataset[tst_lang][splt][label], params)
                 set_dico_parameters(params, data, style_data['dico'])
 
                 data['tst'][label][splt] = TSTDataset(style_data['sentences'], style_data['positions'], params, label)
