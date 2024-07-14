@@ -1,4 +1,5 @@
 from collections import OrderedDict
+import os
 import time
 import torch
 import torch.nn.functional as F
@@ -16,7 +17,8 @@ class TSTTrainer(Trainer):
         """
         Initialize trainer.
         """
-        self.MODEL_NAMES = ["classifier"]
+        # Encoder is also optimized
+        self.MODEL_NAMES = ["classifier", "encoder"]
 
         self.classifier = classifier
         self.encoder = encoder
@@ -116,7 +118,7 @@ class TSTTrainer(Trainer):
         lang_id = self.params.lang2id[lang]
 
         self.classifier.train()
-
+        self.encoder.train()
         
         (x, len) = self.get_batch('tst', label)
         # (x, len) = self.add_noise(x, len)
@@ -151,3 +153,38 @@ class TSTTrainer(Trainer):
         self.n_iter += 1
         self.n_total_iter += 1
         self.print_stats()
+
+    def save_checkpoint(self, name, include_optimizers=True):
+        """
+        Save the model / checkpoints.
+        """
+        if not self.params.is_master:
+            return
+        # Modified name to separate the saved modely in both the trainers
+        name = 'classifier' + name
+        path = os.path.join(self.params.dump_path, '%s.pth' % name)
+        logger.info("Saving %s to %s ..." % (name, path))
+
+        data = {
+            'epoch': self.epoch,
+            'n_total_iter': self.n_total_iter,
+            'best_metrics': self.best_metrics,
+            'best_stopping_criterion': self.best_stopping_criterion,
+        }
+
+        for name in self.MODEL_NAMES:
+            if name != 'encoder': # encoder is saved separately
+                logger.warning(f"Saving {name} parameters ...")
+                data[name] = getattr(self, name).state_dict()
+
+        if include_optimizers:
+            for name in self.optimizers.keys():
+                logger.warning(f"Saving {name} optimizer ...")
+                data[f'{name}_optimizer'] = self.optimizers[name].state_dict()
+
+        data['dico_id2word'] = self.data['dico'].id2word
+        data['dico_word2id'] = self.data['dico'].word2id
+        data['dico_counts'] = self.data['dico'].counts
+        data['params'] = {k: v for k, v in self.params.__dict__.items()}
+
+        torch.save(data, path)
