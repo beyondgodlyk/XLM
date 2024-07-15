@@ -398,21 +398,21 @@ def main(params):
         # evaluate perplexity
         scores = evaluator.run_all_evals(trainer)
         tst_scores = tst_evaluator.run_all_evals(tst_trainer)
-
+        combined_scores = OrderedDict(list(scores.items()) + list(tst_scores.items()))
         # print / JSON log
-        for k, v in OrderedDict(list(scores.items()) + list(tst_scores.items())).items():
+        for k, v in combined_scores.items():
             logger.info("%s -> %.6f" % (k, v))
         if params.is_master:
             logger.info("__log__:%s" % json.dumps(scores))
 
         # end of epoch
-        trainer.save_best_model(scores)
+        trainer.save_best_model(combined_scores)
         trainer.save_periodic()
-        trainer.end_epoch(scores)
+        trainer.end_epoch(combined_scores)
 
-        tst_trainer.save_best_model(tst_scores)
+        tst_trainer.save_best_model(combined_scores)
         tst_trainer.save_periodic()
-        tst_trainer.end_epoch(tst_scores)
+        tst_trainer.end_epoch(combined_scores)
 
 
 if __name__ == '__main__':
