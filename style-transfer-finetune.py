@@ -362,11 +362,9 @@ def main(params):
         trainer.n_sentences = 0
 
         while trainer.n_sentences < trainer.epoch_size:
-            logger.info(params.lambda_ae)
-            logger.info(params.lambda_bt)
-            # Classifier steps
-            for label in random.sample(params.labels, len(params.labels)):
-                tst_trainer.tst_step(label, params.lambda_tst)
+            # # Classifier steps
+            # for label in random.sample(params.labels, len(params.labels)):
+            #     tst_trainer.tst_step(label, params.lambda_tst)
 
             # CLM steps
             for lang1, lang2 in shuf_order(params.clm_steps, params):
@@ -387,7 +385,7 @@ def main(params):
             # machine translation steps
             for lang1, lang2 in shuf_order(params.mt_steps, params):
                 trainer.mt_step(lang1, lang2, params.lambda_mt)
-
+            exit()
             # back-translation steps
             for lang1, lang2, lang3 in shuf_order(params.bt_steps):
                 trainer.bt_step(lang1, lang2, lang3, params.lambda_bt)
