@@ -362,6 +362,8 @@ def main(params):
         trainer.n_sentences = 0
 
         while trainer.n_sentences < trainer.epoch_size:
+            logger.info(params.lambda_ae)
+            logger.info(params.lambda_bt)
             # Classifier steps
             for label in random.sample(params.labels, len(params.labels)):
                 tst_trainer.tst_step(label, params.lambda_tst)
