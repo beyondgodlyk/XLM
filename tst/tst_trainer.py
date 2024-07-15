@@ -140,8 +140,6 @@ class TSTTrainer(Trainer):
         # self.stats['RECALL-%s' % label].append(binary_recall(pred_label, tensor_label).item())
         # self.stats['F1-%s' % label].append(binary_f1_score(pred, tensor_label).item())
         
-        logger.info(loss)
-        logger.info(lambda_coeff * loss)
         loss = lambda_coeff * loss
         self.optimize(loss)
 

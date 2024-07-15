@@ -856,7 +856,6 @@ class EncDecTrainer(Trainer):
 
         # loss
         _, loss = self.decoder('predict', tensor=dec2, pred_mask=pred_mask, y=y, get_scores=False)
-        logger.info(loss)
         self.stats[('AE-%s' % lang1) if lang1 == lang2 else ('MT-%s-%s' % (lang1, lang2))].append(loss.item())
         loss = (lambda_coeff if lang1 == 'fr' else params.scaling_rate_of_lambda_for_EN * lambda_coeff) * loss
 
