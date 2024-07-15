@@ -113,7 +113,7 @@ class TSTTrainer(Trainer):
             x = next(iterator)
         return x
     
-    def classifier_step(self, label):
+    def tst_step(self, label):
         lang = 'en'
         lang_id = self.params.lang2id[lang]
 
