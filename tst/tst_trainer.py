@@ -113,7 +113,7 @@ class TSTTrainer(Trainer):
             x = next(iterator)
         return x
     
-    def tst_step(self, label):
+    def tst_step(self, label, lambda_coeff):
         lang = 'en'
         lang_id = self.params.lang2id[lang]
 
@@ -140,6 +140,7 @@ class TSTTrainer(Trainer):
         # self.stats['RECALL-%s' % label].append(binary_recall(pred_label, tensor_label).item())
         # self.stats['F1-%s' % label].append(binary_f1_score(pred, tensor_label).item())
         
+        loss = lambda_coeff * loss
         self.optimize(loss)
 
         self.n_sentences += self.params.batch_size
