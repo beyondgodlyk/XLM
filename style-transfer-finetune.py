@@ -363,6 +363,8 @@ def main(params):
 
         while trainer.n_sentences < trainer.epoch_size:
             # Classifier steps
+            logger.info(params.lambda_tst)
+            logger.info(params.lambda_bt)
             assert params.lambda_tst == params.lambda_bt
             for label in random.sample(params.labels, len(params.labels)):
                 tst_trainer.tst_step(label, params.lambda_tst)
