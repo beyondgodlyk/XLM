@@ -90,7 +90,7 @@ class TSTTrainer(Trainer):
         logger.info("Creating new training data iterator (%s) ..." % ','.join([str(x) for x in [iter_name, label] if x is not None]))
 
         iterator = self.data[iter_name][label]['train'].get_iterator(
-            shuffle=False, 
+            shuffle=True, 
             group_by_size=False, 
             n_sentences=-1)
     
