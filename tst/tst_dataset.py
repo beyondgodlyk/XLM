@@ -29,7 +29,7 @@ class TSTDataset(Dataset):
                     logger.error("Error when copying sentence %s" % s)
                     logger.error("lengths[i] = %s" % lengths[i])
                     logger.error("Size of s = %s" % s.size)
-                    logger.error("Size of sent = %s" % sent.size())
+                    logger.error(sent.size())
                     raise
 
             sent[lengths[i] - 1, i] = self.eos_index
