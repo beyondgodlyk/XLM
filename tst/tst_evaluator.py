@@ -78,11 +78,8 @@ class TSTEvaluator(Evaluator):
         
         pred_path = os.path.join(self.params.dump_path, '%s.%s.pred' % (scores.get('epoch'), data_set))
         label_path = os.path.join(self.params.dump_path, '%s.%s.label' % (scores.get('epoch'), data_set))
-        with open(pred_path, 'w', encoding='utf-8') as f:
-            f.write('\n'.join([pred for pred in agg_pred.tolist()]) + '\n')
-        with open(label_path, 'w', encoding='utf-8') as f:
-            f.write('\n'.join([label for label in agg_label.tolist()]) + '\n')
-            
+        torch.save(agg_pred, pred_path)
+        torch.save(agg_label, label_path)
 
         # Accuracy and BCE for the separate datasets
         scores['BCE-%s-%s' % (data_set, 0)] = F.binary_cross_entropy(agg_pred[:(2000 if data_set == 'valid' else 500)], agg_label[:(2000 if data_set == 'valid' else 500)]).item()
