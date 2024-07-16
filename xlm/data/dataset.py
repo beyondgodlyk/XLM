@@ -154,8 +154,6 @@ class Dataset(object):
         indices = indices[self.lengths[indices] <= max_len]
         self.pos = self.pos[indices]
         self.lengths = self.pos[:, 1] - self.pos[:, 0]
-        for length in self.lengths:
-            assert length <= max_len
         logger.info("Removed %i too long sentences." % (init_size - len(indices)))
         self.check()
 

@@ -152,12 +152,12 @@ def load_tst_train_data(params, logger):
 
                 dataset = TSTDataset(style_data['sentences'], style_data['positions'], params, label)
 
-                if splt == 'train':
-                    dataset.remove_empty_sentences()
-                    dataset.remove_long_sentences(params.max_len)
+                # Make changes here later
+                dataset.remove_empty_sentences()
+                dataset.remove_long_sentences(params.max_len)
 
                 data['tst'][label][splt] = dataset
-                
+
     # TST train data summary
     logger.info('============ Data summary')
     for label, v in data['tst'].items():
