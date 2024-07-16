@@ -79,9 +79,9 @@ class TSTEvaluator(Evaluator):
         pred_path = os.path.join(self.params.dump_path, '%s.%s.pred' % (scores.get('epoch'), data_set))
         label_path = os.path.join(self.params.dump_path, '%s.%s.label' % (scores.get('epoch'), data_set))
         with open(pred_path, 'w', encoding='utf-8') as f:
-            f.write('\n'.join(agg_pred.tolist()) + '\n')
+            f.write('\n'.join([str(pred) for pred in agg_pred.tolist()]) + '\n')
         with open(label_path, 'w', encoding='utf-8') as f:
-            f.write('\n'.join(agg_label.tolist()) + '\n')
+            f.write('\n'.join([str(label) for label in agg_label.tolist()]) + '\n')
             
 
         # Accuracy and BCE for the separate datasets
