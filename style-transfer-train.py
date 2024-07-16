@@ -150,8 +150,14 @@ def load_tst_train_data(params, logger):
                 style_data = load_binarized(params.tst_train_dataset[lang][splt][label], params)
                 set_dico_parameters(params, data, style_data['dico'])
 
-                data['tst'][label][splt] = TSTDataset(style_data['sentences'], style_data['positions'], params, label)
+                dataset = TSTDataset(style_data['sentences'], style_data['positions'], params, label)
 
+                if splt == 'train':
+                    dataset.remove_empty_sentences()
+                    dataset.remove_long_sentences(params.max_len)
+
+                data['tst'][label][splt] = dataset
+                
     # TST train data summary
     logger.info('============ Data summary')
     for label, v in data['tst'].items():
