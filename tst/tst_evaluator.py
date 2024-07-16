@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn.functional as F
 from torcheval.metrics.functional import binary_accuracy, binary_f1_score, binary_precision, binary_recall
@@ -75,6 +76,14 @@ class TSTEvaluator(Evaluator):
 
         assert agg_pred.size(0) == (4000 if data_set == 'valid' else 1000)
         
+        pred_path = os.path.join(self.params.dump_path, '%s.%s.pred' % (scores.get('epoch'), data_set))
+        label_path = os.path.join(self.params.dump_path, '%s.%s.label' % (scores.get('epoch'), data_set))
+        with open(pred_path, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(agg_pred) + '\n')
+        with open(label_path, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(agg_label) + '\n')
+            
+
         # Accuracy and BCE for the separate datasets
         scores['BCE-%s-%s' % (data_set, 0)] = F.binary_cross_entropy(agg_pred[:(2000 if data_set == 'valid' else 500)], agg_label[:(2000 if data_set == 'valid' else 500)]).item()
         scores['BCE-%s-%s' % (data_set, 1)] = F.binary_cross_entropy(agg_pred[(2000 if data_set == 'valid' else 500):], agg_label[(2000 if data_set == 'valid' else 500):]).item()
