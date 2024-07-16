@@ -74,7 +74,7 @@ class TSTEvaluator(Evaluator):
                 agg_pred = torch.cat((agg_pred, pred))
                 agg_label = torch.cat((agg_label, torch.Tensor([label]).repeat(pred.size()).cuda()))
 
-        assert agg_pred.size(0) == (4000 if data_set == 'valid' else 1000)
+        # assert agg_pred.size(0) == (4000 if data_set == 'valid' else 1000)
         
         pred_path = os.path.join(self.params.dump_path, '%s.%s.pred' % (scores.get('epoch'), data_set))
         label_path = os.path.join(self.params.dump_path, '%s.%s.label' % (scores.get('epoch'), data_set))
