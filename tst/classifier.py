@@ -24,10 +24,10 @@ class Classifier(nn.Module):
 
     def init_weights(self):
         for conv in self.convs:
-            nn.init.xavier_uniform_(conv.weight)
+            nn.init.xavier_normal_(conv.weight)
             nn.init.constant_(conv.bias, 0.0)
         for fc in self.fcs:
-            nn.init.xavier_uniform_(fc.weight)
+            nn.init.xavier_normal_(fc.weight)
             nn.init.constant_(fc.bias, 0.0)
 
     def forward(self, latent):
