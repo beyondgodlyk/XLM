@@ -3,7 +3,6 @@ import os
 import argparse
 import torch
 import random
-import numpy as np
 
 from xlm.utils import AttrDict
 from xlm.utils import bool_flag, initialize_exp
@@ -155,13 +154,6 @@ def load_tst_train_data(params, logger):
 
                 dataset.remove_empty_sentences()
                 dataset.remove_long_sentences(params.max_len)
-
-                if splt == 'train' and label == 1 and len(dataset.pos) > len(data['tst'][0][splt].pos):
-                    indices = np.sort(np.random.choice(len(dataset.pos), len(data['tst'][0][splt].pos), replace=False))
-
-                    dataset.pos = dataset.pos[indices]
-                    dataset.lengths = dataset.pos[:, 1] - dataset.pos[:, 0]
-                    logger.info("Data size: %i after sampling" % len(dataset.pos))
 
                 data['tst'][label][splt] = dataset
 

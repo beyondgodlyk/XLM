@@ -2,10 +2,6 @@ from xlm.data.dataset import Dataset
 import numpy as np
 import torch
 
-from logging import getLogger
-
-logger = getLogger()
-
 class TSTDataset(Dataset):
     def __init__(self, sent, pos, params, style):
         self.style = style
@@ -23,7 +19,7 @@ class TSTDataset(Dataset):
         sent[0] = self.eos_index
         for i, s in enumerate(sentences):
             if lengths[i] > 2:  # if sentence not empty
-                    sent[1:lengths[i] - 1, i].copy_(torch.from_numpy(s.astype(np.int64)))
+                sent[1:lengths[i] - 1, i].copy_(torch.from_numpy(s.astype(np.int64)))
             sent[lengths[i] - 1, i] = self.eos_index
 
         return sent, lengths

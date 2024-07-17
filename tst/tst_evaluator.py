@@ -1,4 +1,3 @@
-import os
 import torch
 import torch.nn.functional as F
 from torcheval.metrics.functional import binary_accuracy, binary_f1_score, binary_precision, binary_recall
