@@ -52,5 +52,6 @@ class Classifier(nn.Module):
             conv_outs = self.dropout(conv_outs)
         
         conv_outs = self.fcs[-1](conv_outs)
+        conv_outs = self.act(conv_outs)
 
         return conv_outs
