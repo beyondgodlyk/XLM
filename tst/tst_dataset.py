@@ -23,15 +23,7 @@ class TSTDataset(Dataset):
         sent[0] = self.eos_index
         for i, s in enumerate(sentences):
             if lengths[i] > 2:  # if sentence not empty
-                try:
                     sent[1:lengths[i] - 1, i].copy_(torch.from_numpy(s.astype(np.int64)))
-                except:
-                    logger.error("Error when copying sentence %s" % s)
-                    logger.error("lengths[i] = %s" % lengths[i])
-                    logger.error("Size of s = %s" % s.size)
-                    logger.error(sent.size())
-                    raise
-
             sent[lengths[i] - 1, i] = self.eos_index
 
         return sent, lengths

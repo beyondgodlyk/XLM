@@ -157,13 +157,13 @@ def load_tst_train_data(params, logger):
                 dataset.remove_empty_sentences()
                 dataset.remove_long_sentences(params.max_len)
 
-                if len(dataset.pos) > 160861:
-                    indices = np.sort(np.random.choice(len(dataset.pos), 160861, replace=False))
+                if splt == 'train' and label == 1 and len(dataset.pos) > len(data['tst'][0][splt].pos):
+                    indices = np.sort(np.random.choice(len(dataset.pos), len(data['tst'][0][splt].pos), replace=False))
 
                     dataset.pos = dataset.pos[indices]
                     dataset.lengths = dataset.pos[:, 1] - dataset.pos[:, 0]
                     logger.info("Data size: %i after sampling" % len(dataset.pos))
-                    
+
                 data['tst'][label][splt] = dataset
 
     # TST train data summary
