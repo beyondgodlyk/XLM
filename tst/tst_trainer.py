@@ -139,7 +139,7 @@ class TSTTrainer(Trainer):
         # self.stats['F1-%s' % label].append(binary_f1_score(pred, tensor_label).item())
         
         self.optimize(loss)
-        print(self.classifier.fcs[0].weight.grad)
+        print(label, self.classifier.fcs)
 
         self.n_sentences += self.params.batch_size
         self.stats['processed_s'] += len.size(0)
