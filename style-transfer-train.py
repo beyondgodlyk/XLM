@@ -153,7 +153,6 @@ def load_tst_train_data(params, logger):
 
                 dataset = TSTDataset(style_data['sentences'], style_data['positions'], params, label)
 
-                # Make changes here later
                 dataset.remove_empty_sentences()
                 dataset.remove_long_sentences(params.max_len)
 
@@ -234,8 +233,6 @@ def main(params):
         
         # Evaluate on classification metrics
         scores = evaluator.run_all_evals(trainer)
-        # Make changes here
-        scores["ACC-valid"] = 1
 
         # print / JSON log
         for k, v in scores.items():

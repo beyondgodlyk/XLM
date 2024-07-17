@@ -128,12 +128,13 @@ class TSTTrainer(Trainer):
         enc = enc.transpose(0, 1)
 
         score = self.classifier(enc).squeeze(1)
+        pred = torch.sigmoid(score)
 
         tensor_label = torch.Tensor([label]).repeat(score.size()).cuda()
 
         loss = F.binary_cross_entropy_with_logits(score, tensor_label)
         self.stats['BCE-%s' % label].append(loss.item())
-        # self.stats['ACC-%s' % label].append(binary_accuracy(pred, tensor_label).item())
+        self.stats['ACC-%s' % label].append(binary_accuracy(pred, tensor_label).item())
         # self.stats['PREC-%s' % label].append(binary_precision(pred, tensor_label).item())
         # self.stats['RECALL-%s' % label].append(binary_recall(pred_label, tensor_label).item())
         # self.stats['F1-%s' % label].append(binary_f1_score(pred, tensor_label).item())
