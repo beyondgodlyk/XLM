@@ -17,7 +17,7 @@ class Classifier(nn.Module):
         self.fcs = nn.ModuleList([
             nn.Linear(fc_sizes[i], fc_sizes[i + 1]) for i in range(len(fc_sizes) - 1)
         ])
-        self.act = gelu
+        self.act = F.relu
 
         self.init_weights()
 

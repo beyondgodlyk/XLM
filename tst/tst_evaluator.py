@@ -77,9 +77,7 @@ class TSTEvaluator(Evaluator):
         # assert agg_pred.size(0) == (4000 if data_set == 'valid' else 1000)
         
         pred_path = os.path.join(self.params.dump_path, '%s.%s.pred' % (scores.get('epoch'), data_set))
-        label_path = os.path.join(self.params.dump_path, '%s.%s.label' % (scores.get('epoch'), data_set))
         torch.save(agg_pred, pred_path)
-        torch.save(agg_label, label_path)
 
         # Accuracy and BCE for the separate datasets
         scores['BCE-%s-%s' % (data_set, 0)] = F.binary_cross_entropy_with_logits(agg_pred[:(2000 if data_set == 'valid' else 500)], agg_label[:(2000 if data_set == 'valid' else 500)]).item()
