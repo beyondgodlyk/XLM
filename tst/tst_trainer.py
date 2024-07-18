@@ -122,20 +122,18 @@ class TSTTrainer(Trainer):
         cl_name = self.optimizers.keys()
         cl_optimizer = [self.optimizers[k] for k in cl_name]
         assert len(cl_optimizer) == 1
-        print(cl_optimizer)
 
         enc_name = self.dae_trainer.optimizers.keys()
         enc_optimizer = [self.dae_trainer.optimizers[k] for k in enc_name]
         assert len(enc_optimizer) == 1
-        print(enc_optimizer)
 
         # Make sure the params of classifier are correctly loaded in the optimizer
-        assert self.parameters(cl_name) == [p for p in list(self.classifier.parameters()) if p.requires_grad]
+        assert self.parameters[cl_name] == [p for p in list(self.classifier.parameters()) if p.requires_grad]
         # Make sure all the params of Classifier are being updated
         assert len([p.grad for p in list(self.classifier.parameters()) if p.requires_grad]) == len(self.parameters(cl_name))
         
         # Since LHS contains params for Enc+Dec, make sure that the length of params which have grad (only Enc) are less
-        assert len(self.parameters(enc_name)) > len([p.grad for p in list(self.encoder.parameters()) if p.requires_grad])
+        assert len(self.parameters[enc_name]) > len([p.grad for p in list(self.encoder.parameters()) if p.requires_grad])
         # Make sure all the params of Enc are being updated
         assert len([p for p in list(self.encoder.parameters()) if p.requires_grad]) == len([p.grad for p in list(self.encoder.parameters()) if p.requires_grad]) 
         # Makes sure none of the params of Dec are being updated
