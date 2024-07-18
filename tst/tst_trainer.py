@@ -130,7 +130,7 @@ class TSTTrainer(Trainer):
         cl_optimizer.zero_grad()
         dae_optimizer.zero_grad()
 
-        print([p for p in list(self.encoder.parameters()) if p.requires_grad][0])
+        # print([p for p in list(self.encoder.parameters()) if p.requires_grad][0])
 
         loss.backward()
 
@@ -159,8 +159,8 @@ class TSTTrainer(Trainer):
         cl_optimizer.step()
         dae_optimizer.step()
 
-        print([p for p in list(self.encoder.parameters()) if p.requires_grad][0])
-        print("End of optimize")
+        # print([p for p in list(self.encoder.parameters()) if p.requires_grad][0])
+        # print("End of optimize")
     
     def tst_step(self, label, lambda_coeff):
         lang = 'en'
