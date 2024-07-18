@@ -125,10 +125,12 @@ class TSTTrainer(Trainer):
 
         dae_opt_keys = list(self.dae_trainer.optimizers.keys())
         assert len(dae_opt_keys) == 1
-        enc_optimizer = self.dae_trainer.optimizers[dae_opt_keys[0]]
+        dae_optimizer = self.dae_trainer.optimizers[dae_opt_keys[0]]
 
         cl_optimizer.zero_grad()
-        enc_optimizer.zero_grad()
+        dae_optimizer.zero_grad()
+
+        print([p for p in list(self.encoder.parameters()) if p.requires_grad][0])
 
         loss.backward()
         # Sanity checks
@@ -139,20 +141,21 @@ class TSTTrainer(Trainer):
         
         # Since LHS contains params for Enc+Dec, make sure that the length of params which have grad (only Enc) are less. 
         # Also "+1" is for PredLayer since it's not used and doesn't have gradient.
-        print([p.grad != None for p in list(self.encoder.parameters()) if p.requires_grad])
-        print(len(self.parameters[dae_opt_keys[0]]))
-        assert len(self.parameters[dae_opt_keys[0]]) > sum([p.grad != None for p in list(self.encoder.parameters()) if p.requires_grad]) + 1
+        assert len(self.dae_trainer.parameters[dae_opt_keys[0]]) > sum([p.grad != None for p in list(self.encoder.parameters()) if p.requires_grad]) + 1
         # Make sure all the params of Enc are being updated
         assert len([p for p in list(self.encoder.parameters()) if p.requires_grad]) == sum([p.grad != None for p in list(self.encoder.parameters()) if p.requires_grad]) 
         # Makes sure none of the params of Dec are being updated
         assert sum([p.grad != None for p in list(self.decoder.parameters()) if p.requires_grad]) == 0
 
         if self.params.clip_grad_norm > 0:
-            clip_grad_norm_(self.parameters[cl_opt_keys], self.params.clip_grad_norm)
-            clip_grad_norm_(self.parameters[dae_opt_keys], self.params.clip_grad_norm)
+            clip_grad_norm_(self.parameters[cl_opt_keys[0]], self.params.clip_grad_norm)
+            clip_grad_norm_(self.dae_trainer.parameters[dae_opt_keys[0]], self.params.clip_grad_norm)
         
         cl_optimizer.step()
-        enc_optimizer.step()
+        dae_optimizer.step()
+
+        print([p for p in list(self.encoder.parameters()) if p.requires_grad][0])
+        print("End of optimize")
     
     def tst_step(self, label, lambda_coeff):
         lang = 'en'
