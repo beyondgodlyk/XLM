@@ -42,7 +42,7 @@ def get_parser():
                         help="Use a GELU activation instead of ReLU")
     
     # model / output paths
-    parser.add_argument("--dae_model_path", type=str, default="", help="Model path")
+    parser.add_argument("--dae_model_path", type=str, default="", help="DAE Model path")
     parser.add_argument("--output_path", type=str, default="", help="Output path")
 
     # reload checkpoint
