@@ -143,7 +143,7 @@ class TSTTrainer(Trainer):
         # Also "+1" is for PredLayer since it's not used and doesn't have gradient.
         assert len(self.dae_trainer.parameters[dae_opt_keys[0]]) > sum([p.grad != None for p in list(self.encoder.parameters()) if p.requires_grad]) + 1
         # Make sure all the params of Enc are being updated
-        assert len([p for p in list(self.encoder.parameters()) if p.requires_grad]) == sum([p.grad != None for p in list(self.encoder.parameters()) if p.requires_grad]) 
+        assert len([p for p in list(self.encoder.parameters()) if p.requires_grad]) == sum([p.grad != None for p in list(self.encoder.parameters()) if p.requires_grad]) + 1
         # Makes sure none of the params of Dec are being updated
         assert sum([p.grad != None for p in list(self.decoder.parameters()) if p.requires_grad]) == 0
 
