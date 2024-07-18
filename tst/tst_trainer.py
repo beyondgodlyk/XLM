@@ -137,9 +137,11 @@ class TSTTrainer(Trainer):
         # Make sure all the params of Classifier are being updated
         assert sum([p.grad != None for p in list(self.classifier.parameters()) if p.requires_grad]) == len(self.parameters[cl_opt_keys[0]])
         
-        # Since LHS contains params for Enc+Dec, make sure that the length of params which have grad (only Enc) are less
+        # Since LHS contains params for Enc+Dec, make sure that the length of params which have grad (only Enc) are less. 
+        # Also "+1" is for PredLayer since it's not used and doesn't have gradient.
         print([p.grad != None for p in list(self.encoder.parameters()) if p.requires_grad])
-        assert len(self.parameters[dae_opt_keys[0]]) > sum([p.grad != None for p in list(self.encoder.parameters()) if p.requires_grad])
+        print(len(self.parameters[dae_opt_keys[0]]))
+        assert len(self.parameters[dae_opt_keys[0]]) > sum([p.grad != None for p in list(self.encoder.parameters()) if p.requires_grad]) + 1
         # Make sure all the params of Enc are being updated
         assert len([p for p in list(self.encoder.parameters()) if p.requires_grad]) == sum([p.grad != None for p in list(self.encoder.parameters()) if p.requires_grad]) 
         # Makes sure none of the params of Dec are being updated
