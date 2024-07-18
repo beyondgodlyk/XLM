@@ -6,6 +6,7 @@ import torch.nn.functional as F
 from torcheval.metrics.functional import binary_accuracy, binary_f1_score, binary_precision, binary_recall
 from torch.nn.utils import clip_grad_norm_
 
+from xlm.optim import get_optimizer
 from xlm.trainer import Trainer
 from xlm.utils import to_cuda
 
@@ -86,6 +87,19 @@ class TSTTrainer(Trainer):
 
         # reload potential checkpoints
         self.reload_checkpoint()
+
+    def set_optimizers(self):
+        """
+        Set optimizers.
+        """
+        params = self.params
+        self.optimizers = {}
+
+        # model optimizer (excluding memory values)
+        self.optimizers['model'] = get_optimizer(self.parameters['model'], params.cl_optimizer)
+
+        # log
+        logger.info("Classifier Optimizers: %s" % ", ".join(self.optimizers.keys()))
 
     def get_iterator(self, iter_name, label):
         """

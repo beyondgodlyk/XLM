@@ -208,6 +208,8 @@ def get_parser():
                         help="Fully connected layer sizes for the CNN classifier")
     parser.add_argument("--num_filters", type=int, default=256,
                         help="Number of filters for the CNN classifier")
+    parser.add_argument("--cl_optimizer", type=str, default="adam,lr=0.0001",
+                        help="Optimizer (SGD / RMSprop / Adam, etc.) for Classifier")
 
     # training coefficients
     parser.add_argument("--lambda_mlm", type=str, default="1",
