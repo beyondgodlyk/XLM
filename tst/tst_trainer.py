@@ -133,17 +133,22 @@ class TSTTrainer(Trainer):
         print([p for p in list(self.encoder.parameters()) if p.requires_grad][0])
 
         loss.backward()
+
         # Sanity checks
         # Make sure the params of classifier are correctly loaded in the optimizer
         assert self.parameters[cl_opt_keys[0]] == [p for p in list(self.classifier.parameters()) if p.requires_grad]
         # Make sure all the params of Classifier are being updated
-        assert sum([p.grad != None for p in list(self.classifier.parameters()) if p.requires_grad]) == len(self.parameters[cl_opt_keys[0]])
-        
-        # Since LHS contains params for Enc+Dec, make sure that the length of params which have grad (only Enc) are less. 
-        # Also "+1" is for PredLayer since it's not used and doesn't have gradient.
-        assert len(self.dae_trainer.parameters[dae_opt_keys[0]]) > sum([p.grad != None for p in list(self.encoder.parameters()) if p.requires_grad]) + 1
-        # Make sure all the params of Enc are being updated
-        assert len([p for p in list(self.encoder.parameters()) if p.requires_grad]) == sum([p.grad != None for p in list(self.encoder.parameters()) if p.requires_grad]) + 1
+        assert sum([p.grad != None for p in list(self.classifier.parameters()) if p.requires_grad]) \
+            == len(self.parameters[cl_opt_keys[0]])
+
+        # Total params of Enc+Dec = Params of Enc with gradients + 1 (for Pred Layer of Enc) + Params of Dec
+        assert len(self.dae_trainer.parameters[dae_opt_keys[0]]) == \
+            sum([p.grad != None for p in list(self.encoder.parameters()) if p.requires_grad]) \
+            + 1 \
+            + len([p for p in list(self.decoder.parameters()) if p.requires_grad])
+        # Number of params of Enc = Number of params of Enc with gradients + 1 (for Pred Layer of Enc)
+        assert len([p for p in list(self.encoder.parameters()) if p.requires_grad]) \
+            == sum([p.grad != None for p in list(self.encoder.parameters()) if p.requires_grad]) + 1
         # Makes sure none of the params of Dec are being updated
         assert sum([p.grad != None for p in list(self.decoder.parameters()) if p.requires_grad]) == 0
 
