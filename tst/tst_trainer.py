@@ -119,39 +119,34 @@ class TSTTrainer(Trainer):
         """
         Optimize the Encoder and Classifier using 2 optimizers.
         """
-        cl_name = self.optimizers.keys()
-        print(cl_name)
-        cl_optimizer = [self.optimizers[k] for k in cl_name]
+        cl_opt_keys = self.optimizers.keys()
+        cl_optimizer = [self.optimizers[k] for k in cl_opt_keys]
         assert len(cl_optimizer) == 1
 
-        enc_name = self.dae_trainer.optimizers.keys()
-        print(enc_name)
-        enc_optimizer = [self.dae_trainer.optimizers[k] for k in enc_name]
+        dae_opt_keys = self.dae_trainer.optimizers.keys()
+        enc_optimizer = [self.dae_trainer.optimizers[k] for k in dae_opt_keys]
         assert len(enc_optimizer) == 1
 
         # Make sure the params of classifier are correctly loaded in the optimizer
-        assert self.parameters[cl_name] == [p for p in list(self.classifier.parameters()) if p.requires_grad]
+        assert self.parameters[list(cl_opt_keys)] == [p for p in list(self.classifier.parameters()) if p.requires_grad]
         # Make sure all the params of Classifier are being updated
-        assert len([p.grad for p in list(self.classifier.parameters()) if p.requires_grad]) == len(self.parameters(cl_name))
+        assert sum([p.grad != None for p in list(self.classifier.parameters()) if p.requires_grad]) == len(self.parameters[list(cl_opt_keys)])
         
         # Since LHS contains params for Enc+Dec, make sure that the length of params which have grad (only Enc) are less
-        assert len(self.parameters[enc_name]) > len([p.grad for p in list(self.encoder.parameters()) if p.requires_grad])
+        assert len(self.parameters[dae_opt_keys]) > sum([p.grad != None for p in list(self.encoder.parameters()) if p.requires_grad])
         # Make sure all the params of Enc are being updated
-        assert len([p for p in list(self.encoder.parameters()) if p.requires_grad]) == len([p.grad for p in list(self.encoder.parameters()) if p.requires_grad]) 
+        assert len([p for p in list(self.encoder.parameters()) if p.requires_grad]) == sum([p.grad != None for p in list(self.encoder.parameters()) if p.requires_grad]) 
         # Makes sure none of the params of Dec are being updated
-        assert len([p.grad for p in list(self.decoder.parameters()) if p.requires_grad]) == 0
+        assert sum([p.grad != None for p in list(self.decoder.parameters()) if p.requires_grad]) == 0
 
         cl_optimizer.zero_grad()
         enc_optimizer.zero_grad()
 
         loss.backward()
-        assert self.encoder.parameters.grad is not None
-        assert self.classifier.parameters.grad is not None
-        assert self.decoder.parameters.grad is None
 
         if self.params.clip_grad_norm > 0:
-            clip_grad_norm_(self.parameters[cl_name], self.params.clip_grad_norm)
-            clip_grad_norm_(self.parameters[enc_name], self.params.clip_grad_norm)
+            clip_grad_norm_(self.parameters[cl_opt_keys], self.params.clip_grad_norm)
+            clip_grad_norm_(self.parameters[dae_opt_keys], self.params.clip_grad_norm)
         
         cl_optimizer.step()
         enc_optimizer.step()
