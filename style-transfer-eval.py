@@ -241,11 +241,12 @@ def main(params):
                 while True:
                     prev_modified_enc1 = modified_enc1.detach().clone()
 
-                    pred = classifier(modified_enc1).squeeze(1)
-                    loss = F.binary_cross_entropy(pred, torch.Tensor([label_pair[1]]).repeat(pred.size()).cuda(), reduction='none')
+                    score = classifier(modified_enc1).squeeze(1)
+                    pred = torch.sigmoid(score)
+                    loss = F.binary_cross_entropy_with_logits(score, torch.Tensor([label_pair[1]]).repeat(score.size()).cuda(), reduction='none')
                 
-                    # if loss[0].item() < 0.000001:
-                    #     break
+                    if loss[0].item() < 0.000001:
+                        break
 
                     opt.zero_grad()
 
