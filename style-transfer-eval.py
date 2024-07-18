@@ -245,8 +245,8 @@ def main(params):
                     pred = torch.sigmoid(score)
                     loss = F.binary_cross_entropy_with_logits(score, torch.Tensor([label_pair[1]]).repeat(score.size()).cuda(), reduction='none')
                 
-                    if loss[0].item() < 0.000001:
-                        break
+                    # if loss[0].item() < 0.000001:
+                    #     break
 
                     opt.zero_grad()
 
@@ -255,7 +255,7 @@ def main(params):
                         clip_grad_norm_([modified_enc1], params.clip_grad_norm)
                     opt.step()
                     
-                    logger.info("Iteration %d, Pred: %.4e, Loss: %.4e, Gradient Norm: %.4e, LR: %.4e" % 
+                    logger.info("Iteration %d, Pred: %.10f, Loss: %.10f, Gradient Norm: %.4e, LR: %.4e" % 
                                 (it, pred[0], loss[0].item(), LA.matrix_norm(modified_enc1.grad.data)[0].item(), 
                                  opt.param_groups[0]['lr']))
                     logger.info("Modified sentence: %s" % 
