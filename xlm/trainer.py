@@ -140,7 +140,8 @@ class Trainer(object):
         named_params = []
         for name in self.MODEL_NAMES:
             named_params.extend([(k, p) for k, p in getattr(self, name).named_parameters() if p.requires_grad])
-        
+        logger.info("named params: %s" % [k for (k,p) in named_params])
+
         # model (excluding memory values)
         self.parameters['model'] = [p for k, p in named_params if not k.endswith(HashingMemory.MEM_VALUES_PARAMS)]
 
