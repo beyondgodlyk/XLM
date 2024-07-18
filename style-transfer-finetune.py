@@ -339,7 +339,7 @@ def main(params):
     else:
         trainer = EncDecTrainer(encoder, decoder, data, params)
         evaluator = EncDecEvaluator(trainer, data, params)
-        tst_trainer = TSTTrainer(classifier, encoder, decoder, tst_data, params)
+        tst_trainer = TSTTrainer(classifier, trainer, tst_data, params)
         tst_evaluator = TSTEvaluator(tst_trainer, tst_data, params)
 
 
