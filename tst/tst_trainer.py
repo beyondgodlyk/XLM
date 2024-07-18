@@ -127,6 +127,11 @@ class TSTTrainer(Trainer):
         assert len(dae_opt_keys) == 1
         enc_optimizer = self.dae_trainer.optimizers[dae_opt_keys[0]]
 
+        cl_optimizer.zero_grad()
+        enc_optimizer.zero_grad()
+
+        loss.backward()
+        # Sanity checks
         # Make sure the params of classifier are correctly loaded in the optimizer
         assert self.parameters[cl_opt_keys[0]] == [p for p in list(self.classifier.parameters()) if p.requires_grad]
         # Make sure all the params of Classifier are being updated
@@ -139,11 +144,6 @@ class TSTTrainer(Trainer):
         assert len([p for p in list(self.encoder.parameters()) if p.requires_grad]) == sum([p.grad != None for p in list(self.encoder.parameters()) if p.requires_grad]) 
         # Makes sure none of the params of Dec are being updated
         assert sum([p.grad != None for p in list(self.decoder.parameters()) if p.requires_grad]) == 0
-
-        cl_optimizer.zero_grad()
-        enc_optimizer.zero_grad()
-
-        loss.backward()
 
         if self.params.clip_grad_norm > 0:
             clip_grad_norm_(self.parameters[cl_opt_keys], self.params.clip_grad_norm)
