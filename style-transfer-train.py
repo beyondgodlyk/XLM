@@ -42,7 +42,7 @@ def get_parser():
                         help="Use a GELU activation instead of ReLU")
     
     # model / output paths
-    parser.add_argument("--dae_model_path", type=str, default="", help="Model path")
+    parser.add_argument("--dae_model_path", type=str, default="", help="DAE Model path")
     parser.add_argument("--output_path", type=str, default="", help="Output path")
 
     # reload checkpoint
@@ -150,7 +150,12 @@ def load_tst_train_data(params, logger):
                 style_data = load_binarized(params.tst_train_dataset[lang][splt][label], params)
                 set_dico_parameters(params, data, style_data['dico'])
 
-                data['tst'][label][splt] = TSTDataset(style_data['sentences'], style_data['positions'], params, label)
+                dataset = TSTDataset(style_data['sentences'], style_data['positions'], params, label)
+
+                dataset.remove_empty_sentences()
+                dataset.remove_long_sentences(params.max_len)
+
+                data['tst'][label][splt] = dataset
 
     # TST train data summary
     logger.info('============ Data summary')

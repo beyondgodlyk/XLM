@@ -17,7 +17,6 @@ class Classifier(nn.Module):
         self.fcs = nn.ModuleList([
             nn.Linear(fc_sizes[i], fc_sizes[i + 1]) for i in range(len(fc_sizes) - 1)
         ])
-        self.sigmoid = nn.Sigmoid()
         self.act = gelu
 
         self.init_weights()
@@ -47,7 +46,11 @@ class Classifier(nn.Module):
 
         conv_outs = torch.cat(conv_outs, 1) # (batch_size, num_filters * len(kernel_sizes))
         conv_outs = self.dropout(conv_outs)
-        for fc in self.fcs:
-            conv_outs = self.act(fc(conv_outs))
+    
+        for i in range(len(self.fcs) - 1):
+            conv_outs = self.act(self.fcs[i](conv_outs))
             conv_outs = self.dropout(conv_outs)
-        return self.sigmoid(conv_outs)
+        
+        conv_outs = self.fcs[-1](conv_outs)
+
+        return conv_outs

@@ -55,7 +55,7 @@ class TSTEvaluator(Evaluator):
 
         self.classifier.eval()
 
-        agg_pred = torch.Tensor().cuda()
+        agg_score = torch.Tensor().cuda()
         agg_label = torch.Tensor().cuda()
 
         for label in self.params.labels:
@@ -68,16 +68,17 @@ class TSTEvaluator(Evaluator):
                 enc = self.encoder('fwd', x=x, lengths=len, langs=langs, causal=False)
                 enc = enc.transpose(0, 1)
 
-                pred = self.classifier(enc).squeeze(1)
+                score = self.classifier(enc).squeeze(1)
 
-                agg_pred = torch.cat((agg_pred, pred))
-                agg_label = torch.cat((agg_label, torch.Tensor([label]).repeat(pred.size()).cuda()))
+                agg_score = torch.cat((agg_score, score))
+                agg_label = torch.cat((agg_label, torch.Tensor([label]).repeat(score.size()).cuda()))
 
-        assert agg_pred.size(0) == (4000 if data_set == 'valid' else 1000)
-        
+        assert agg_score.size(0) == (4000 if data_set == 'valid' else 1000)
+        agg_pred = torch.sigmoid(agg_score)
+
         # Accuracy and BCE for the separate datasets
-        scores['BCE-%s-%s' % (data_set, 0)] = F.binary_cross_entropy(agg_pred[:(2000 if data_set == 'valid' else 500)], agg_label[:(2000 if data_set == 'valid' else 500)]).item()
-        scores['BCE-%s-%s' % (data_set, 1)] = F.binary_cross_entropy(agg_pred[(2000 if data_set == 'valid' else 500):], agg_label[(2000 if data_set == 'valid' else 500):]).item()
+        scores['BCE-%s-%s' % (data_set, 0)] = F.binary_cross_entropy_with_logits(agg_score[:(2000 if data_set == 'valid' else 500)], agg_label[:(2000 if data_set == 'valid' else 500)]).item()
+        scores['BCE-%s-%s' % (data_set, 1)] = F.binary_cross_entropy_with_logits(agg_score[(2000 if data_set == 'valid' else 500):], agg_label[(2000 if data_set == 'valid' else 500):]).item()
         scores['ACC-%s-%s' % (data_set, 0)] = binary_accuracy(agg_pred[:(2000 if data_set == 'valid' else 500)], agg_label[:(2000 if data_set == 'valid' else 500)]).item()
         scores['ACC-%s-%s' % (data_set, 1)] = binary_accuracy(agg_pred[(2000 if data_set == 'valid' else 500):], agg_label[(2000 if data_set == 'valid' else 500):]).item()
         

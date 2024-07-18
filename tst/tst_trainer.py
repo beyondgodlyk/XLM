@@ -129,11 +129,12 @@ class TSTTrainer(Trainer):
         enc = self.encoder('fwd', x=x, lengths=len, langs=langs, causal=False)
         enc = enc.transpose(0, 1)
 
-        pred = self.classifier(enc).squeeze(1)
+        score = self.classifier(enc).squeeze(1)
+        pred = torch.sigmoid(score)
 
-        tensor_label = torch.Tensor([label]).repeat(pred.size()).cuda()
+        tensor_label = torch.Tensor([label]).repeat(score.size()).cuda()
 
-        loss = F.binary_cross_entropy(pred, tensor_label)
+        loss = F.binary_cross_entropy_with_logits(score, tensor_label)
         self.stats['BCE-%s' % label].append(loss.item())
         self.stats['ACC-%s' % label].append(binary_accuracy(pred, tensor_label).item())
         # self.stats['PREC-%s' % label].append(binary_precision(pred, tensor_label).item())
@@ -142,7 +143,7 @@ class TSTTrainer(Trainer):
         
         loss = lambda_coeff * loss
         self.optimize(loss)
-
+        
         self.n_sentences += self.params.batch_size
         self.stats['processed_s'] += len.size(0)
         self.stats['processed_w'] += (len - 1).sum().item()
