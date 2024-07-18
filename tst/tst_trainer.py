@@ -130,6 +130,7 @@ class TSTTrainer(Trainer):
         # Make sure the params of classifier are correctly loaded in the optimizer
         assert self.parameters[cl_opt_keys[0]] == [p for p in list(self.classifier.parameters()) if p.requires_grad]
         # Make sure all the params of Classifier are being updated
+        print([p.grad != None for p in list(self.classifier.parameters()) if p.requires_grad])
         assert sum([p.grad != None for p in list(self.classifier.parameters()) if p.requires_grad]) == len(self.parameters[cl_opt_keys[0]])
         
         # Since LHS contains params for Enc+Dec, make sure that the length of params which have grad (only Enc) are less
