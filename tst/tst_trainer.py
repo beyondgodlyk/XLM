@@ -4,6 +4,7 @@ import time
 import torch
 import torch.nn.functional as F
 from torcheval.metrics.functional import binary_accuracy, binary_f1_score, binary_precision, binary_recall
+from torch.nn.utils import clip_grad_norm_
 
 from xlm.trainer import Trainer
 from xlm.utils import to_cuda
@@ -13,16 +14,17 @@ from logging import getLogger
 logger = getLogger()
 
 class TSTTrainer(Trainer):
-    def __init__(self, classifier, encoder, decoder, data, params):
+    def __init__(self, classifier, dae_trainer, data, params):
         """
         Initialize trainer.
         """
         # Encoder is also optimized
-        self.MODEL_NAMES = ["classifier", "encoder"]
+        self.MODEL_NAMES = ["classifier"]
 
         self.classifier = classifier
-        self.encoder = encoder
-        self.decoder = decoder
+        self.encoder = dae_trainer.encoder
+        self.decoder = dae_trainer.decoder
+        self.dae_trainer = dae_trainer
         self.data = data
         self.params = params
 
@@ -112,6 +114,47 @@ class TSTTrainer(Trainer):
             iterator = self.get_iterator(iter_name, label)
             x = next(iterator)
         return x
+
+    def optimize(self, loss):
+        """
+        Optimize the Encoder and Classifier using 2 optimizers.
+        """
+        cl_name = self.optimizers.keys()
+        cl_optimizer = [self.optimizers[k] for k in cl_name]
+        assert len(cl_optimizer) == 1
+        print(cl_optimizer)
+
+        enc_name = self.dae_trainer.optimizers.keys()
+        enc_optimizer = [self.dae_trainer.optimizers[k] for k in enc_name]
+        assert len(enc_optimizer) == 1
+        print(enc_optimizer)
+
+        # Make sure the params of classifier are correctly loaded in the optimizer
+        assert self.parameters(cl_name) == [p for p in list(self.classifier.parameters()) if p.requires_grad]
+        # Make sure all the params of Classifier are being updated
+        assert len([p.grad for p in list(self.classifier.parameters()) if p.requires_grad]) == len(self.parameters(cl_name))
+        
+        # Since LHS contains params for Enc+Dec, make sure that the length of params which have grad (only Enc) are less
+        assert len(self.parameters(enc_name)) > len([p.grad for p in list(self.encoder.parameters()) if p.requires_grad])
+        # Make sure all the params of Enc are being updated
+        assert len([p for p in list(self.encoder.parameters()) if p.requires_grad]) == len([p.grad for p in list(self.encoder.parameters()) if p.requires_grad]) 
+        # Makes sure none of the params of Dec are being updated
+        assert len([p.grad for p in list(self.decoder.parameters()) if p.requires_grad]) == 0
+
+        cl_optimizer.zero_grad()
+        enc_optimizer.zero_grad()
+
+        loss.backward()
+        assert self.encoder.parameters.grad is not None
+        assert self.classifier.parameters.grad is not None
+        assert self.decoder.parameters.grad is None
+
+        if self.params.clip_grad_norm > 0:
+            clip_grad_norm_(self.parameters[cl_name], self.params.clip_grad_norm)
+            clip_grad_norm_(self.parameters[enc_name], self.params.clip_grad_norm)
+        
+        cl_optimizer.step()
+        enc_optimizer.step()
     
     def tst_step(self, label, lambda_coeff):
         lang = 'en'
