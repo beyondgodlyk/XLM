@@ -120,10 +120,12 @@ class TSTTrainer(Trainer):
         Optimize the Encoder and Classifier using 2 optimizers.
         """
         cl_name = self.optimizers.keys()
+        print(cl_name)
         cl_optimizer = [self.optimizers[k] for k in cl_name]
         assert len(cl_optimizer) == 1
 
         enc_name = self.dae_trainer.optimizers.keys()
+        print(enc_name)
         enc_optimizer = [self.dae_trainer.optimizers[k] for k in enc_name]
         assert len(enc_optimizer) == 1
 
