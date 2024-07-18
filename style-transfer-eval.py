@@ -255,7 +255,7 @@ def main(params):
                         clip_grad_norm_([modified_enc1], params.clip_grad_norm)
                     opt.step()
                     
-                    logger.info("Iteration %d, Pred: %.10f, Loss: %.10f, Gradient Norm: %.4e, LR: %.4e" % 
+                    logger.info("Iteration %d, Pred: %.4e, Loss: %.4e, Gradient Norm: %.4e, LR: %.4e" % 
                                 (it, pred[0], loss[0].item(), LA.matrix_norm(modified_enc1.grad.data)[0].item(), 
                                  opt.param_groups[0]['lr']))
                     logger.info("Modified sentence: %s" % 
