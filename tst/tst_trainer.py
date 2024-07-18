@@ -119,21 +119,21 @@ class TSTTrainer(Trainer):
         """
         Optimize the Encoder and Classifier using 2 optimizers.
         """
-        cl_opt_keys = self.optimizers.keys()
-        cl_optimizer = [self.optimizers[k] for k in cl_opt_keys]
-        assert len(cl_optimizer) == 1
+        cl_opt_keys = list(self.optimizers.keys())
+        assert len(cl_opt_keys) == 1
+        cl_optimizer = self.optimizers[cl_opt_keys[0]]
 
-        dae_opt_keys = self.dae_trainer.optimizers.keys()
-        enc_optimizer = [self.dae_trainer.optimizers[k] for k in dae_opt_keys]
-        assert len(enc_optimizer) == 1
+        dae_opt_keys = list(self.dae_trainer.optimizers.keys())
+        assert len(dae_opt_keys) == 1
+        enc_optimizer = self.dae_trainer.optimizers[dae_opt_keys[0]]
 
         # Make sure the params of classifier are correctly loaded in the optimizer
-        assert self.parameters[list(cl_opt_keys)] == [p for p in list(self.classifier.parameters()) if p.requires_grad]
+        assert self.parameters[cl_opt_keys[0]] == [p for p in list(self.classifier.parameters()) if p.requires_grad]
         # Make sure all the params of Classifier are being updated
-        assert sum([p.grad != None for p in list(self.classifier.parameters()) if p.requires_grad]) == len(self.parameters[list(cl_opt_keys)])
+        assert sum([p.grad != None for p in list(self.classifier.parameters()) if p.requires_grad]) == len(self.parameters[cl_opt_keys[0]])
         
         # Since LHS contains params for Enc+Dec, make sure that the length of params which have grad (only Enc) are less
-        assert len(self.parameters[dae_opt_keys]) > sum([p.grad != None for p in list(self.encoder.parameters()) if p.requires_grad])
+        assert len(self.parameters[dae_opt_keys[0]]) > sum([p.grad != None for p in list(self.encoder.parameters()) if p.requires_grad])
         # Make sure all the params of Enc are being updated
         assert len([p for p in list(self.encoder.parameters()) if p.requires_grad]) == sum([p.grad != None for p in list(self.encoder.parameters()) if p.requires_grad]) 
         # Makes sure none of the params of Dec are being updated
