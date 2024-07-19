@@ -230,6 +230,9 @@ def main(params):
                 enc1 = encoder('fwd', x=x1, lengths=len1, langs=langs1, causal=False)
                 enc1 = enc1.transpose(0, 1)
 
+                enc2 = encoder('fwd', x=x2, lengths=len2, langs=langs2, causal=False)
+                enc2 = enc2.transpose(0, 1)
+
                 # Clone detached encoder output to be modified iteratively
                 modified_enc1 = enc1.detach().clone()
                 modified_enc1.requires_grad = True
@@ -240,7 +243,6 @@ def main(params):
                 it = 0
                 while True:
                     prev_modified_enc1 = modified_enc1.detach().clone()
-                    logger.info("Sentence before changing : %s" % get_transferred_sentence(len1, params.tgt_id, modified_enc1, decoder, dico, params)[0])
                     score = classifier(modified_enc1).squeeze(1)
                     pred = torch.sigmoid(score)
                     loss = F.binary_cross_entropy_with_logits(score, torch.Tensor([label_pair[1]]).repeat(score.size()).cuda(), reduction='none')
@@ -258,6 +260,12 @@ def main(params):
                     logger.info("Iteration %d, Pred: %.4e, Loss: %.4e, Gradient Norm: %.4e, LR: %.4e" % 
                                 (it, pred[0], loss[0].item(), LA.matrix_norm(modified_enc1.grad.data)[0].item(), 
                                  opt.param_groups[0]['lr']))
+                    logger.info("L2 dist b/w orig, modi and modi, gold enc output: %.4e, %.4e" %
+                                (LA.vector_norm(torch.reshape(enc1 - modified_enc1, -1)).item(), 
+                                 LA.vector_norm(torch.reshape(modified_enc1 - enc2, -1)).item()))
+                    logger.info("Cosine distance b/w orig, modi and modi, gold enc output: %.4e, %.4e" %
+                                1 - F.cosine_similarity(torch.reshape(enc1, -1), torch.reshape(modified_enc1, -1)).item(),
+                                1 - F.cosine_similarity(torch.reshape(modified_enc1, -1), torch.reshape(enc2, -1)).item())
                     logger.info("Modified sentence: %s" % 
                                 get_transferred_sentence(len1, params.tgt_id, modified_enc1, decoder, dico, params)[0])
                     logger.info("")
