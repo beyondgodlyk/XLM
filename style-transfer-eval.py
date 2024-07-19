@@ -256,21 +256,24 @@ def main(params):
                     if params.clip_grad_norm > 0:
                         clip_grad_norm_([modified_enc1], params.clip_grad_norm)
                     opt.step()
+
+                    # Make sure that padded tensor is unchanged
+                    assert torch.all(modified_enc1[1] == enc1[1])
                     
                     logger.info("Iteration %d, Pred: %.4e, Loss: %.4e, Gradient Norm: %.4e, LR: %.4e" % 
                                 (it, pred[0], loss[0].item(), LA.matrix_norm(modified_enc1.grad.data)[0].item(), 
                                  opt.param_groups[0]['lr']))
                     logger.info("L2 dist b/w orig, modi and modi, gold enc output: %.4e, %.4e" %
-                                (LA.vector_norm(torch.reshape(enc1 - modified_enc1, (-1,))).item(), 
-                                 LA.vector_norm(torch.reshape(modified_enc1 - enc2, (-1,))).item()))
+                                (LA.vector_norm(torch.reshape(enc1[0] - modified_enc1[0], (-1,))).item(), 
+                                 LA.vector_norm(torch.reshape(modified_enc1[0] - enc2[0], (-1,))).item()))
                     logger.info("Cosine distance b/w orig, modi and modi, gold enc output: %.4e, %.4e" %
-                                (1 - F.cosine_similarity(torch.reshape(enc1, (-1,)), torch.reshape(modified_enc1, (-1,))).item(),
-                                 1 - F.cosine_similarity(torch.reshape(modified_enc1, (-1,)), torch.reshape(enc2, (-1,))).item()))
+                                (1 - F.cosine_similarity(torch.reshape(enc1[0], (1,-1)), torch.reshape(modified_enc1[0], (1,-1))).item(),
+                                 1 - F.cosine_similarity(torch.reshape(modified_enc1[0], (1,-1)), torch.reshape(enc2[0], (1,-1))).item()))
                     logger.info("Modified sentence: %s" % 
                                 get_transferred_sentence(len1, params.tgt_id, modified_enc1, decoder, dico, params)[0])
                     logger.info("")
 
-                    if torch.all(prev_modified_enc1 == modified_enc1) == True:
+                    if torch.all(prev_modified_enc1[0] == modified_enc1[0]) == True:
                         logger.info("Modified encoder output has not changed. Continuing")
                         break
                     it += 1
