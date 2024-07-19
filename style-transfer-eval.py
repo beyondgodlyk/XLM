@@ -240,7 +240,7 @@ def main(params):
                 it = 0
                 while True:
                     prev_modified_enc1 = modified_enc1.detach().clone()
-
+                    logger.info("Sentence before changing : %s" % get_transferred_sentence(len1, params.tgt_id, modified_enc1, decoder, dico, params)[0])
                     score = classifier(modified_enc1).squeeze(1)
                     pred = torch.sigmoid(score)
                     loss = F.binary_cross_entropy_with_logits(score, torch.Tensor([label_pair[1]]).repeat(score.size()).cuda(), reduction='none')
