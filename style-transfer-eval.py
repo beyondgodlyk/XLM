@@ -265,10 +265,14 @@ def main(params):
                     # print(set(modified_enc1.grad[0][0].tolist()))
                     # print(set(modified_enc1.grad[0][len1[0]].tolist()))
                     # print(set(modified_enc1.grad[0][len1[0]+1].tolist()))
+
+                    print(torch.all(modified_enc1[0][len1[0]]))
+                    print(torch.all(modified_enc1[0][len1[0]+1]))
+                    
                     for i in range(len1[0], params.max_len + 2):
                         assert torch.all(modified_enc1[0][i] == modified_enc1[0][len1[0]])
-                        
-                    print(torch.all(modified_enc1[0][-1] == modified_enc1[0][-2]))
+
+
                     print([LA.vector_norm(modified_enc1.grad[0][i]).item() for i in range(params.max_len + 2)])
 
                     if params.clip_grad_norm > 0:
