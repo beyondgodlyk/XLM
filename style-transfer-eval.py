@@ -241,7 +241,16 @@ def main(params):
                 
                 opt = get_optimizer([modified_enc1], params.optimizer)
                 it = 0
+                
                 while True:
+                    
+                    logger.info("L2 dist b/w orig, modi and modi, gold enc output: %.4e, %.4e" %
+                                (LA.vector_norm(torch.reshape(enc1[0] - modified_enc1[0], (-1,))).item(), 
+                                 LA.vector_norm(torch.reshape(modified_enc1[0] - enc2[0], (-1,))).item()))
+                    logger.info("Cosine distance b/w orig, modi and modi, gold enc output: %.4e, %.4e" %
+                                (1 - F.cosine_similarity(torch.reshape(enc1[0], (1,-1)), torch.reshape(modified_enc1[0], (1,-1))).item(),
+                                 1 - F.cosine_similarity(torch.reshape(modified_enc1[0], (1,-1)), torch.reshape(enc2[0], (1,-1))).item()))
+
                     prev_modified_enc1 = modified_enc1.detach().clone()
                     score = classifier(modified_enc1).squeeze(1)
                     pred = torch.sigmoid(score)
@@ -263,12 +272,6 @@ def main(params):
                     logger.info("Iteration %d, Pred: %.4e, Loss: %.4e, Gradient Norm: %.4e, LR: %.4e" % 
                                 (it, pred[0], loss[0].item(), LA.matrix_norm(modified_enc1.grad.data)[0].item(), 
                                  opt.param_groups[0]['lr']))
-                    logger.info("L2 dist b/w orig, modi and modi, gold enc output: %.4e, %.4e" %
-                                (LA.vector_norm(torch.reshape(enc1[0] - modified_enc1[0], (-1,))).item(), 
-                                 LA.vector_norm(torch.reshape(modified_enc1[0] - enc2[0], (-1,))).item()))
-                    logger.info("Cosine distance b/w orig, modi and modi, gold enc output: %.4e, %.4e" %
-                                (1 - F.cosine_similarity(torch.reshape(enc1[0], (1,-1)), torch.reshape(modified_enc1[0], (1,-1))).item(),
-                                 1 - F.cosine_similarity(torch.reshape(modified_enc1[0], (1,-1)), torch.reshape(enc2[0], (1,-1))).item()))
                     logger.info("Modified sentence: %s" % 
                                 get_transferred_sentence(len1, params.tgt_id, modified_enc1, decoder, dico, params)[0])
                     logger.info("")
