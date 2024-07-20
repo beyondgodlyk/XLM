@@ -13,6 +13,7 @@ from xlm.data.dataset import ParallelDataset
 from xlm.data.dictionary import Dictionary
 from xlm.model.transformer import TransformerModel
 from xlm.optim import get_optimizer
+from xlm.evaluation.evaluator import convert_to_text
 
 from tst.tst_dataset import TSTDataset
 from tst.tst_trainer import TSTTrainer
@@ -175,28 +176,6 @@ def reload_models(params):
 
     return dico, encoder, decoder, classifier
 
-def convert_to_text(batch, lengths, dico, params):
-    """
-    Convert a batch of sentences to a list of text sentences.
-    """
-    batch = batch.cpu().numpy()
-    lengths = lengths.cpu().numpy()
-
-    slen, bs = batch.shape
-    assert lengths.max() == slen and lengths.shape[0] == bs
-    assert (batch[0] == params.eos_index).sum() == bs
-    assert (batch == params.eos_index).sum() == 2 * bs
-    sentences = []
-
-    for j in range(bs):
-        words = []
-        for k in range(1, lengths[j]):
-            # if batch[k, j] == params.eos_index:
-            #     break
-            words.append(dico[batch[k, j]])
-        sentences.append(" ".join(words))
-    return sentences
-
 def get_transferred_sentence(len1, lang2_id, enc, decoder, dico, params):
     generated, lengths = decoder.generate(enc, len1, lang2_id, max_len = params.max_len + 2)
     return convert_to_text(generated, lengths, dico, params)
@@ -264,7 +243,7 @@ def main(params):
                 it = 0
                 
                 while True:
-
+                    
                     logger.info("L2 dist b/w orig, modi and modi, gold enc output: %.4e, %.4e" %
                                 (LA.vector_norm(torch.reshape(enc1[0] - modified_enc1[0], (-1,))).item(), 
                                  LA.vector_norm(torch.reshape(modified_enc1[0] - enc2[0], (-1,))).item()))
