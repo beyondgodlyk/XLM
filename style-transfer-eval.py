@@ -266,7 +266,6 @@ def main(params):
                     # print(set(modified_enc1.grad[0][len1[0]].tolist()))
                     # print(set(modified_enc1.grad[0][len1[0]+1].tolist()))
                     print([LA.vector_norm(modified_enc1.grad[0][i]) for i in range(params.max_len + 2)])
-                    for i in range(params.max_len + 2):
 
                     if params.clip_grad_norm > 0:
                         clip_grad_norm_([modified_enc1], params.clip_grad_norm)
