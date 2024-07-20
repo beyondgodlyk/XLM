@@ -263,7 +263,8 @@ def main(params):
 
                     loss[0].backward()
                     print(set(modified_enc1.grad[0][0].tolist()))
-                    print(set(modified_enc1.grad[0][-1].tolist()))
+                    print(len1)
+                    print(set(modified_enc1.grad[0][len1].tolist()))
                     if params.clip_grad_norm > 0:
                         clip_grad_norm_([modified_enc1], params.clip_grad_norm)
                     opt.step()
