@@ -280,11 +280,11 @@ def main(params):
                     # Make sure that padded tensor is unchanged
                     assert torch.all(modified_enc1[1] == enc1[1])
                     
-                    logger.info(LA.matrix_norm(modified_enc1.grad.data).size())
+                    logger.info(torch.all(prev_modified_enc1[0] == modified_enc1[0]))
                     logger.info("Min and max of Gradient: %.4e, %.4e" % (modified_enc1.grad.data[0].min().item(),
                                                                             modified_enc1.grad.data[0].max().item()))
                     logger.info("Iteration %d, Pred: %.10e, Loss: %.10e, Gradient Norm: %.10e, LR: %.4e" % 
-                                (it, pred[0], loss[0].item(), LA.matrix_norm(modified_enc1.grad.data)[0].item(), 
+                                (it, pred[0], loss[0].item(), LA.matrix_norm(modified_enc1.grad.data[0]).item(), 
                                  opt.param_groups[0]['lr']))
                     logger.info("Modified sentence: %s" % 
                                 get_transferred_sentence(len1, params.tgt_id, modified_enc1, decoder, dico, params)[0])
