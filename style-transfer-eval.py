@@ -262,15 +262,20 @@ def main(params):
                     opt.zero_grad()
 
                     loss[0].backward()
+
+                    # Set gradients after len1[0] to be zero
+                    modified_enc1.grad[0][len1[0]:] = 0
+                    
+                    if params.clip_grad_norm > 0:
+                        clip_grad_norm_([modified_enc1], params.clip_grad_norm)
+                    opt.step()
+
                     # print(set(modified_enc1.grad[0][0].tolist()))
                     # print(set(modified_enc1.grad[0][len1[0]].tolist()))
                     # print(set(modified_enc1.grad[0][len1[0]+1].tolist()))
 
                     logger.info([(i, LA.vector_norm(modified_enc1.grad[0][i]).item()) for i in range(params.max_len + 2)])
 
-                    if params.clip_grad_norm > 0:
-                        clip_grad_norm_([modified_enc1], params.clip_grad_norm)
-                    opt.step()
 
                     # Make sure that padded tensor is unchanged
                     assert torch.all(modified_enc1[1] == enc1[1])
