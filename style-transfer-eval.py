@@ -280,7 +280,7 @@ def main(params):
                     # Make sure that padded tensor is unchanged
                     assert torch.all(modified_enc1[1] == enc1[1])
                     
-
+                    logger.info(modified_enc1.grad.data.size())
                     logger.info("Min and max of Gradient: %.4e, %.4e" % (modified_enc1.grad.data.min().item(),
                                                                             modified_enc1.grad.data.max().item()))
                     logger.info("Iteration %d, Pred: %.10e, Loss: %.10e, Gradient Norm: %.10e, LR: %.4e" % 
