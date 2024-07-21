@@ -252,6 +252,8 @@ def main(params):
                                  1 - F.cosine_similarity(torch.reshape(modified_enc1[0], (1,-1)), torch.reshape(enc2[0], (1,-1))).item()))
 
                     prev_modified_enc1 = modified_enc1.detach().clone()
+                    logger.info(torch.all(prev_modified_enc1[0] == modified_enc1[0]))
+                    
                     score = classifier(modified_enc1).squeeze(1)
                     pred = torch.sigmoid(score)
                     loss = F.binary_cross_entropy_with_logits(score, torch.Tensor([label_pair[1]]).repeat(score.size()).cuda(), reduction='none')
