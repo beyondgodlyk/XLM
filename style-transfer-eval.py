@@ -265,7 +265,7 @@ def main(params):
 
                     # Set gradients after len1[0] to be zero
                     modified_enc1.grad[0][len1[0]:] = 0
-                    
+
                     if params.clip_grad_norm > 0:
                         clip_grad_norm_([modified_enc1], params.clip_grad_norm)
                     opt.step()
@@ -280,7 +280,7 @@ def main(params):
                     # Make sure that padded tensor is unchanged
                     assert torch.all(modified_enc1[1] == enc1[1])
                     
-                    logger.info("Iteration %d, Pred: %.4e, Loss: %.4e, Gradient Norm: %.4e, LR: %.4e" % 
+                    logger.info("Iteration %d, Pred: %.10e, Loss: %.10e, Gradient Norm: %.10e, LR: %.4e" % 
                                 (it, pred[0], loss[0].item(), LA.matrix_norm(modified_enc1.grad.data)[0].item(), 
                                  opt.param_groups[0]['lr']))
                     logger.info("Modified sentence: %s" % 
