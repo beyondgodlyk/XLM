@@ -200,7 +200,6 @@ class TSTTrainer(Trainer):
 
         enc = self.encoder('fwd', x=x, lengths=len, langs=langs, causal=False)
         enc = enc.transpose(0, 1)
-        logger.info(enc.size())
 
         score = self.classifier(enc).squeeze(1)
         pred = torch.sigmoid(score)
