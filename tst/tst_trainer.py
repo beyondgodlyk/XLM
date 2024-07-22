@@ -119,7 +119,7 @@ class TSTTrainer(Trainer):
 
         
         (x, len) = self.get_batch('tst', label)
-        # (x, len) = self.add_noise(x, len)
+        (x, len) = self.add_noise(x, len)
 
         langs = x.clone().fill_(lang_id)
         x, len, langs = to_cuda(x, len, langs)
