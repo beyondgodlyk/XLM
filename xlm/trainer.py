@@ -335,10 +335,12 @@ class Trainer(object):
 
         # define noise word scores
         noise = np.random.uniform(0, self.params.word_shuffle, size=(x.size(0) - 1, x.size(1)))
+        logger.info("noise" + str(noise.size().item()))
         noise[0] = -1  # do not move start sentence symbol
 
         assert self.params.word_shuffle > 1
         x2 = x.clone()
+        logger.info("x2" + str(x2.size().item()))
         for i in range(l.size(0)):
             # generate a random permutation
             scores = np.arange(l[i] - 1) + noise[:l[i] - 1, i]
