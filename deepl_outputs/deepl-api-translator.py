@@ -12,7 +12,7 @@ def get_parser():
 def check_params(args):
     print("Checking parameters...")
     assert os.path.isfile(args.file_path), "Please provide a valid file path"
-    assert args.src_lang in ["EN-US", "FR"], "Source language not supported"
+    assert args.src_lang in ["EN", "FR"], "Source language not supported"
     assert args.tgt_lang in ["EN-US", "FR"], "Target language not supported"
     assert args.src_lang != args.tgt_lang, "Source and target languages must be different"
     print("Parameters are valid")
@@ -25,7 +25,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     check_params(args)
 
-    # translator = deepl.Translator(auth_key)
     with open(args.file_path, "r", encoding='utf-8') as f:
         reviews = [line.rstrip() for line in f]
 
