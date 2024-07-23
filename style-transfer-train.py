@@ -58,6 +58,14 @@ def get_parser():
     parser.add_argument("--src_lang", type=str, default="", help="Source language")
     parser.add_argument("--tgt_lang", type=str, default="", help="Target language")
 
+    # input sentence noise
+    parser.add_argument("--word_shuffle", type=float, default=0,
+                        help="Randomly shuffle input words (0 to disable)")
+    parser.add_argument("--word_dropout", type=float, default=0,
+                        help="Randomly dropout input words (0 to disable)")
+    parser.add_argument("--word_blank", type=float, default=0,
+                        help="Randomly blank input words (0 to disable)")
+
     # training parameters
     parser.add_argument("--optimizer", type=str, default="adam,lr=0.0001",
                         help="Optimizer (SGD / RMSprop / Adam, etc.)")

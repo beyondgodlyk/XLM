@@ -4,6 +4,7 @@ import time
 import torch
 import torch.nn.functional as F
 from torcheval.metrics.functional import binary_accuracy, binary_f1_score, binary_precision, binary_recall
+import numpy as np
 from torch.nn.utils import clip_grad_norm_
 
 from xlm.optim import get_optimizer
@@ -129,6 +130,79 @@ class TSTTrainer(Trainer):
             x = next(iterator)
         return x
 
+    def add_noise(self, words, lengths):
+        """
+        Add noise to the encoder input. Copied from trainer.py to ensure the length is max_len + 2
+        """
+        words, lengths = self.word_shuffle(words, lengths)
+        words, lengths = self.word_dropout(words, lengths)
+        words, lengths = self.word_blank(words, lengths)
+        return words, lengths
+    
+    def word_dropout(self, x, l):
+        """
+        Randomly drop input words. Copied from trainer.py to ensure the length is max_len + 2
+        """
+        if self.params.word_dropout == 0:
+            return x, l
+        assert 0 < self.params.word_dropout < 1
+
+        # define words to drop
+        eos = self.params.eos_index
+        assert (x[0] == eos).sum() == l.size(0)
+        keep = np.random.rand(x.size(0) - 1, x.size(1)) >= self.params.word_dropout
+        keep[0] = 1  # do not drop the start sentence symbol
+
+        sentences = []
+        lengths = []
+        for i in range(l.size(0)):
+            assert x[l[i] - 1, i] == eos
+            words = x[:l[i] - 1, i].tolist()
+            # randomly drop words from the input
+            new_s = [w for j, w in enumerate(words) if keep[j, i]]
+            # we need to have at least one word in the sentence (more than the start / end sentence symbols)
+            if len(new_s) == 1:
+                new_s.append(words[np.random.randint(1, len(words))])
+            new_s.append(eos)
+            assert len(new_s) >= 3 and new_s[0] == eos and new_s[-1] == eos
+            sentences.append(new_s)
+            lengths.append(len(new_s))
+        # re-construct input
+        l2 = torch.LongTensor(lengths)
+        x2 = torch.LongTensor(self.params.max_len + 2, l2.size(0)).fill_(self.params.pad_index)
+        for i in range(l2.size(0)):
+            x2[:l2[i], i].copy_(torch.LongTensor(sentences[i]))
+        return x2, l2
+
+    def word_blank(self, x, l):
+        """
+        Randomly blank input words. Copied from trainer.py to ensure the length is max_len + 2
+        """
+        if self.params.word_blank == 0:
+            return x, l
+        assert 0 < self.params.word_blank < 1
+
+        # define words to blank
+        eos = self.params.eos_index
+        assert (x[0] == eos).sum() == l.size(0)
+        keep = np.random.rand(x.size(0) - 1, x.size(1)) >= self.params.word_blank
+        keep[0] = 1  # do not blank the start sentence symbol
+
+        sentences = []
+        for i in range(l.size(0)):
+            assert x[l[i] - 1, i] == eos
+            words = x[:l[i] - 1, i].tolist()
+            # randomly blank words from the input
+            new_s = [w if keep[j, i] else self.params.mask_index for j, w in enumerate(words)]
+            new_s.append(eos)
+            assert len(new_s) == l[i] and new_s[0] == eos and new_s[-1] == eos
+            sentences.append(new_s)
+        # re-construct input
+        x2 = torch.LongTensor(self.params.max_len + 2, l.size(0)).fill_(self.params.pad_index)
+        for i in range(l.size(0)):
+            x2[:l[i], i].copy_(torch.LongTensor(sentences[i]))
+        return x2, l
+    
     def optimize(self, loss):
         """
         Optimize the Encoder and Classifier using 2 optimizers.
@@ -184,7 +258,7 @@ class TSTTrainer(Trainer):
         self.encoder.train()
         
         (x, len) = self.get_batch('tst', label)
-        # (x, len) = self.add_noise(x, len)
+        (x, len) = self.add_noise(x, len)
 
         langs = x.clone().fill_(lang_id)
         x, len, langs = to_cuda(x, len, langs)
