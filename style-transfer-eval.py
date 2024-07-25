@@ -4,6 +4,7 @@ import torch
 import torch.nn.functional as F
 from torch import linalg as LA
 from torch.nn.utils import clip_grad_norm_
+import sacrebleu
 
 from xlm.utils import AttrDict
 from xlm.utils import to_cuda
@@ -256,9 +257,6 @@ def main(params):
                     score = classifier(modified_enc1).squeeze(1)
                     pred = torch.sigmoid(score)
                     loss = F.binary_cross_entropy_with_logits(score, torch.Tensor([label_pair[1]]).repeat(score.size()).cuda(), reduction='none')
-                
-                    # if loss[0].item() < 0.000001:
-                    #     break
 
                     opt.zero_grad()
 
@@ -271,30 +269,43 @@ def main(params):
                         clip_grad_norm_([modified_enc1], params.clip_grad_norm)
                     opt.step()
 
-                    # print(set(modified_enc1.grad[0][0].tolist()))
-                    # print(set(modified_enc1.grad[0][len1[0]].tolist()))
-                    # print(set(modified_enc1.grad[0][len1[0]+1].tolist()))
-
-                    logger.info([(i, LA.vector_norm(modified_enc1.grad[0][i]).item()) for i in range(params.max_len + 2)])
+                    # Print norms of gradients for each token. Used to verify if the gradient is focused on style tokens
+                    # logger.info([(i, LA.vector_norm(modified_enc1.grad[0][i]).item()) for i in range(params.max_len + 2)])
 
 
                     # Make sure that padded tensor is unchanged
                     assert torch.all(modified_enc1[1] == enc1[1])
                     
-                    logger.info("Min and max of Gradient: %.4e, %.4e" % (modified_enc1.grad.data[0].min().item(),
-                                                                            modified_enc1.grad.data[0].max().item()))
+                    # logger.info("Min and max of Gradient: %.4e, %.4e" % (modified_enc1.grad.data[0].min().item(),
+                                                                            # modified_enc1.grad.data[0].max().item()))
                     logger.info("Iteration %d, Pred: %.10e, Loss: %.10e, Gradient Norm: %.10e, LR: %.4e" % 
                                 (it, pred[0], loss[0].item(), LA.matrix_norm(modified_enc1.grad.data[0]).item(), 
                                  opt.param_groups[0]['lr']))
-                    logger.info("Modified sentence: %s" % 
-                                get_transferred_sentence(len1, params.tgt_id, modified_enc1, decoder, dico, params)[0])
+                    
+                    generated, lengths = decoder.generate(modified_enc1, len1, params.tgt_id, max_len = params.max_len + 2)
+                    logger.info("Modified sentence: %s" % convert_to_text(generated, lengths, dico, params)[0])
+                    
+                    generated_enc1 = encoder('fwd', x=generated, lengths=lengths, langs=langs1, causal=False)
+                    generated_enc1 = generated_enc1.transpose(0, 1)
+
+                    generated_score = classifier(generated_enc1).squeeze(1)
+                    generated_pred = torch.sigmoid(generated_score)
+                    logger.info("Generated Pred: %.10e" % generated_pred[0])
+                    # orig and gold are considered references and gen is hypothesis
+                    gen = convert_to_text(generated, lengths, dico, params)[0]
+                    orig = convert_to_text(x1, len1, dico, params)[0]
+                    gold = convert_to_text(x2, len2, dico, params)[0]
+                    logger.info("BLEU score between gen,orig and gen,gold: %.4f, %.4f" %
+                                (sacrebleu.corpus_bleu([gen], [[orig]], tokenize='none').score,
+                                 sacrebleu.corpus_bleu([gen], [[gold]], tokenize='none').score))
+                    
                     logger.info("")
 
                     if torch.all(prev_modified_enc1[0] == modified_enc1[0]) == True:
                         logger.info("Modified encoder output has not changed. Continuing")
                         break
                     it += 1
-                    if it >= 100:
+                    if it >= 100 or generated_pred[0] >= 0.99:
                         break
                 # TODO : restore segmentation
 
