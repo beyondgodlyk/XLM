@@ -245,12 +245,19 @@ def main(params):
                 
                 while True:
                     
+                    # logger.info("L2 dist b/w orig, modi and modi, gold enc output: %.4e, %.4e" %
+                    #             (LA.vector_norm(torch.reshape(enc1[0] - modified_enc1[0], (-1,))).item(), 
+                    #              LA.vector_norm(torch.reshape(modified_enc1[0] - enc2[0], (-1,))).item()))
+                    # logger.info("Cosine distance b/w orig, modi and modi, gold enc output: %.4e, %.4e" %
+                    #             (1 - F.cosine_similarity(torch.reshape(enc1[0], (1,-1)), torch.reshape(modified_enc1[0], (1,-1))).item(),
+                    #              1 - F.cosine_similarity(torch.reshape(modified_enc1[0], (1,-1)), torch.reshape(enc2[0], (1,-1))).item()))
+
                     logger.info("L2 dist b/w orig, modi and modi, gold enc output: %.4e, %.4e" %
-                                (LA.vector_norm(torch.reshape(enc1[0] - modified_enc1[0], (-1,))).item(), 
-                                 LA.vector_norm(torch.reshape(modified_enc1[0] - enc2[0], (-1,))).item()))
+                                (LA.vector_norm(torch.mean(enc1[0], dim=0) - torch.mean(modified_enc1[0], dim=0)).item(), 
+                                 LA.vector_norm(torch.mean(modified_enc1[0], dim=0) - torch.mean(enc2[0], dim=0)).item()))
                     logger.info("Cosine distance b/w orig, modi and modi, gold enc output: %.4e, %.4e" %
-                                (1 - F.cosine_similarity(torch.reshape(enc1[0], (1,-1)), torch.reshape(modified_enc1[0], (1,-1))).item(),
-                                 1 - F.cosine_similarity(torch.reshape(modified_enc1[0], (1,-1)), torch.reshape(enc2[0], (1,-1))).item()))
+                                (1 - F.cosine_similarity(torch.mean(enc1[0], dim=0).unsqueeze(0), torch.mean(modified_enc1[0], dim=0).unsqueeze(0)).item(),
+                                 1 - F.cosine_similarity(torch.mean(modified_enc1[0], dim=0).unsqueeze(0), torch.mean(enc2[0], dim=0).unsqueeze(0)).item()))
 
                     prev_modified_enc1 = modified_enc1.detach().clone()
                     
@@ -291,6 +298,7 @@ def main(params):
                     generated_score = classifier(generated_enc1).squeeze(1)
                     generated_pred = torch.sigmoid(generated_score)
                     logger.info("Generated Pred: %.10e" % generated_pred[0])
+
                     # orig and gold are considered references and gen is hypothesis
                     gen = convert_to_text(generated, lengths, dico, params)[0]
                     orig = convert_to_text(x1, len1, dico, params)[0]
@@ -298,7 +306,13 @@ def main(params):
                     logger.info("BLEU score between gen,orig and gen,gold: %.4f, %.4f" %
                                 (sacrebleu.corpus_bleu([gen], [[orig]], tokenize='none').score,
                                  sacrebleu.corpus_bleu([gen], [[gold]], tokenize='none').score))
-                    
+                    logger.info("L2 dist b/w orig, gen and gen, gold enc output: %.4e, %.4e" %
+                                (LA.vector_norm(torch.mean(enc1[0], dim=0) - torch.mean(generated_enc1[0], dim=0)).item(), 
+                                 LA.vector_norm(torch.mean(generated_enc1[0], dim=0) - torch.mean(enc2[0], dim=0)).item()))
+                    logger.info("Cosine distance b/w orig, gen and gen, gold enc output: %.4e, %.4e" %
+                                (1 - F.cosine_similarity(torch.mean(enc1[0], dim=0).unsqueeze(0), torch.mean(generated_enc1[0], dim=0).unsqueeze(0)).item(),
+                                 1 - F.cosine_similarity(torch.mean(generated_enc1[0], dim=0).unsqueeze(0), torch.mean(enc2[0], dim=0).unsqueeze(0)).item()))
+                    logger.info((1 - generated_pred[0].item() <= torch.sigmoid(classifier(enc1).squeeze(1))[0].item())) 
                     logger.info("")
 
                     if torch.all(prev_modified_enc1[0] == modified_enc1[0]) == True:
