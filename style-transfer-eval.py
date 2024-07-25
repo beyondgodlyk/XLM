@@ -238,20 +238,15 @@ def main(params):
                 modified_enc1 = enc1.detach().clone()
                 modified_enc1.requires_grad = True
 
-                modified_enc1 = modified_enc1.cuda()
+                modified_len1 = len1.clone()
                 
                 opt = get_optimizer([modified_enc1], params.optimizer)
                 it = 0
                 
+                prev = convert_to_text(x1, len1, dico, params)[0]
+
                 while True:
                     
-                    # logger.info("L2 dist b/w orig, modi and modi, gold enc output: %.4e, %.4e" %
-                    #             (LA.vector_norm(torch.reshape(enc1[0] - modified_enc1[0], (-1,))).item(), 
-                    #              LA.vector_norm(torch.reshape(modified_enc1[0] - enc2[0], (-1,))).item()))
-                    # logger.info("Cosine distance b/w orig, modi and modi, gold enc output: %.4e, %.4e" %
-                    #             (1 - F.cosine_similarity(torch.reshape(enc1[0], (1,-1)), torch.reshape(modified_enc1[0], (1,-1))).item(),
-                    #              1 - F.cosine_similarity(torch.reshape(modified_enc1[0], (1,-1)), torch.reshape(enc2[0], (1,-1))).item()))
-
                     logger.info("L2 dist b/w orig, modi and modi, gold enc output: %.4e, %.4e" %
                                 (LA.vector_norm(torch.mean(enc1[0], dim=0) - torch.mean(modified_enc1[0], dim=0)).item(), 
                                  LA.vector_norm(torch.mean(modified_enc1[0], dim=0) - torch.mean(enc2[0], dim=0)).item()))
@@ -269,8 +264,8 @@ def main(params):
 
                     loss[0].backward()
 
-                    # Set gradients after len1[0] to be zero
-                    modified_enc1.grad[0][len1[0]:] = 0
+                    # Set gradients after len1[0] to be zero. Actually wrong because length changes. This makes sure that the output sentence can never be greater than len1[0] because the gradient just keeps on becoming 0. Good way to restrict though.
+                    # modified_enc1.grad[0][len1[0]:] = 0
 
                     if params.clip_grad_norm > 0:
                         clip_grad_norm_([modified_enc1], params.clip_grad_norm)
@@ -280,7 +275,7 @@ def main(params):
                     # logger.info([(i, LA.vector_norm(modified_enc1.grad[0][i]).item()) for i in range(params.max_len + 2)])
 
 
-                    # Make sure that padded tensor is unchanged
+                    # Make sure that padded tensor is unchanged. Check if this is required or is even correct
                     assert torch.all(modified_enc1[1] == enc1[1])
                     
                     # logger.info("Min and max of Gradient: %.4e, %.4e" % (modified_enc1.grad.data[0].min().item(),
@@ -289,9 +284,12 @@ def main(params):
                                 (it, pred[0], loss[0].item(), LA.matrix_norm(modified_enc1.grad.data[0]).item(), 
                                  opt.param_groups[0]['lr']))
                     
-                    generated, lengths = decoder.generate(modified_enc1, len1, params.tgt_id, max_len = params.max_len + 2)
+                    generated, lengths = decoder.generate(modified_enc1, modified_len1, params.tgt_id, max_len = params.max_len + 2)
                     logger.info("Modified sentence: %s" % convert_to_text(generated, lengths, dico, params)[0])
-                    
+                    # Convert generated[1] to padded tensor
+                    generated[:,1] = padded_tensor.squeeze(1)
+                    lengths[1] = torch.tensor([params.max_len + 2])
+
                     generated_enc1 = encoder('fwd', x=generated, lengths=lengths, langs=langs1, causal=False)
                     generated_enc1 = generated_enc1.transpose(0, 1)
 
@@ -313,12 +311,24 @@ def main(params):
                                 (1 - F.cosine_similarity(torch.mean(enc1[0], dim=0).unsqueeze(0), torch.mean(generated_enc1[0], dim=0).unsqueeze(0)).item(),
                                  1 - F.cosine_similarity(torch.mean(generated_enc1[0], dim=0).unsqueeze(0), torch.mean(enc2[0], dim=0).unsqueeze(0)).item()))
                     logger.info((1 - generated_pred[0].item() <= torch.sigmoid(classifier(enc1).squeeze(1))[0].item())) 
-                    logger.info("")
+
+                    if gen != prev:
+                        logger.info("Setting modified_enc1 to generated_enc1")
+                        prev = gen
+                        # modified_enc1.requires_grad = False
+                        # modified_enc1[0] = generated_enc1[0]
+                        # modified_enc1.requires_grad = True
+                        modified_enc1 = generated_enc1.detach().clone()
+                        modified_enc1.requires_grad = True
+                        modified_len1[0] = lengths[0]
+
+                        opt = get_optimizer([modified_enc1], params.optimizer)
 
                     if torch.all(prev_modified_enc1[0] == modified_enc1[0]) == True:
                         logger.info("Modified encoder output has not changed. Continuing")
                         break
                     it += 1
+                    logger.info("")
                     if it >= 100 or generated_pred[0] >= 0.99:
                         break
                 # TODO : restore segmentation
