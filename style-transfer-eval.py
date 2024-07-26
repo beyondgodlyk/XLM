@@ -266,7 +266,8 @@ def main(params):
                     # This makes sure that the output sentence can never be greater than len1[0] because 
                     # the gradient just keeps on becoming 0. Although using modified_len1[0] is a correct.
                     # Good way to restrict though.
-                    modified_enc1.grad[0][len1[0]:] = 0
+                    # modified_enc1.grad[0][len1[0]:] = 0
+                    modified_enc1.grad[0][modified_len1[0]:] = 0
 
                     if params.clip_grad_norm > 0:
                         clip_grad_norm_([modified_enc1], params.clip_grad_norm)
@@ -286,9 +287,11 @@ def main(params):
                                  opt.param_groups[0]['lr']))
                     
                     # Decide whether to use modified_len1 or len1
-                    generated, lengths = decoder.generate(modified_enc1, len1, params.tgt_id, max_len = params.max_len + 2)
+                    # generated, lengths = decoder.generate(modified_enc1, len1, params.tgt_id, max_len = params.max_len + 2)
+                    generated, lengths = decoder.generate(modified_enc1, modified_len1, params.tgt_id, max_len = params.max_len + 2)
+                    
                     logger.info("Modified sentence with len1: %s" % convert_to_text(generated, lengths, dico, params)[0])
-                    logger.info("Modified sentence with modified_len1: %s" % get_transferred_sentence(modified_len1, params.tgt_id, modified_enc1, decoder, dico, params)[0])
+                    
                     # Change length corresponding to modified_enc1[0] to be the length of generated[0]
                     modified_len1[0] = lengths[0]
 
