@@ -275,7 +275,13 @@ def main(params):
 
                     # Print norms of gradients for each token. Used to verify if the gradient is focused on style tokens
                     # logger.info([(i, LA.vector_norm(modified_enc1.grad[0][i]).item()) for i in range(params.max_len + 2)])
-
+                    logger.info([(i, modified_enc1[0][i].min().item(), modified_enc1[0][i].max().item()) for i in range(params.max_len + 2)])
+                    idx = 0
+                    for i in range(params.max_len + 2):
+                        if modified_enc1[0][i].min().item() == 0 and modified_enc1[0][i].max().item() == 0:
+                            idx = i
+                            break
+                    logger.info("First token with zero: %d" % idx)
 
                     # Make sure that padded tensor is unchanged. Check if this is required or is even correct
                     assert torch.all(modified_enc1[1] == enc1[1])
