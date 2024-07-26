@@ -275,14 +275,16 @@ def main(params):
 
                     # Print norms of gradients for each token. Used to verify if the gradient is focused on style tokens
                     # logger.info([(i, LA.vector_norm(modified_enc1.grad[0][i]).item()) for i in range(params.max_len + 2)])
-                    logger.info([(i, modified_enc1[0][i].min().item(), modified_enc1[0][i].max().item()) for i in range(params.max_len + 2)])
+                    
+                    # Print min and max of each token
+                    # logger.info([(i, modified_enc1[0][i].min().item(), modified_enc1[0][i].max().item()) for i in range(params.max_len + 2)])
                     idx = 0
                     for i in range(params.max_len + 2):
                         if modified_enc1[0][i].min().item() == 0 and modified_enc1[0][i].max().item() == 0:
                             idx = i
                             break
                     logger.info("First token with zero: %d" % idx)
-
+                    
                     # Make sure that padded tensor is unchanged. Check if this is required or is even correct
                     assert torch.all(modified_enc1[1] == enc1[1])
                     
@@ -292,8 +294,10 @@ def main(params):
                                 (it, pred[0], loss[0].item(), LA.matrix_norm(modified_enc1.grad.data[0]).item(), 
                                  opt.param_groups[0]['lr']))
                     
-                    # Decide whether to use modified_len1 or len1
-                    generated, lengths = decoder.generate(modified_enc1, len1, params.tgt_id, max_len = params.max_len + 2)
+                    # Decide whether to use modified_len1 or len1 or idx
+                    idx_len = len1.clone()
+                    idx_len[0] = torch.tensor([idx])
+                    generated, lengths = decoder.generate(modified_enc1, idx_len, params.tgt_id, max_len = params.max_len + 2)
                     # generated, lengths = decoder.generate(modified_enc1, modified_len1, params.tgt_id, max_len = params.max_len + 2)
                     
                     logger.info("Modified sentence with len1: %s" % convert_to_text(generated, lengths, dico, params)[0])
