@@ -233,6 +233,8 @@ def main(params):
 
                 enc2 = encoder('fwd', x=x2, lengths=len2, langs=langs2, causal=False)
                 enc2 = enc2.transpose(0, 1)
+                enc2_pred = torch.sigmoid(classifier(enc2).squeeze(1))[0]
+                logger.info("Gold Pred: %.10e" % enc2_pred)
 
                 # Clone detached encoder output to be modified iteratively
                 modified_enc1 = enc1.detach().clone()
