@@ -287,8 +287,8 @@ def main(params):
                     
                     # Decide whether to use modified_len1 or len1
                     generated, lengths = decoder.generate(modified_enc1, len1, params.tgt_id, max_len = params.max_len + 2)
-                    logger.info("Modified sentence: %s" % convert_to_text(generated, lengths, dico, params)[0])
-                    
+                    logger.info("Modified sentence with len1: %s" % convert_to_text(generated, lengths, dico, params)[0])
+                    logger.info("Modified sentence with modified_len1: %s" % get_transferred_sentence(modified_len1, params.tgt_id, modified_enc1, decoder, dico, params)[0])
                     # Change length corresponding to modified_enc1[0] to be the length of generated[0]
                     modified_len1[0] = lengths[0]
 
