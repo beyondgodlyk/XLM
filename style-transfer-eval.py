@@ -243,8 +243,6 @@ def main(params):
                 opt = get_optimizer([modified_enc1], params.optimizer)
                 it = 0
                 
-                prev = convert_to_text(x1, len1, dico, params)[0]
-
                 while True:
                     
                     logger.info("L2 dist b/w orig, modi and modi, gold enc output: %.4e, %.4e" %
@@ -264,8 +262,11 @@ def main(params):
 
                     loss[0].backward()
 
-                    # Set gradients after len1[0] to be zero. Actually wrong because length changes. This makes sure that the output sentence can never be greater than len1[0] because the gradient just keeps on becoming 0. Good way to restrict though.
-                    # modified_enc1.grad[0][len1[0]:] = 0
+                    # Set gradients after len1[0] to be zero. Actually wrong because length changes. 
+                    # This makes sure that the output sentence can never be greater than len1[0] because 
+                    # the gradient just keeps on becoming 0. Although using modified_len1[0] is a correct.
+                    # Good way to restrict though.
+                    modified_enc1.grad[0][modified_len1[0]:] = 0
 
                     if params.clip_grad_norm > 0:
                         clip_grad_norm_([modified_enc1], params.clip_grad_norm)
@@ -286,7 +287,11 @@ def main(params):
                     
                     generated, lengths = decoder.generate(modified_enc1, modified_len1, params.tgt_id, max_len = params.max_len + 2)
                     logger.info("Modified sentence: %s" % convert_to_text(generated, lengths, dico, params)[0])
-                    # Convert generated[1] to padded tensor
+                    
+                    # Change length corresponding to modified_enc1[0] to be the length of generated[0]
+                    modified_len1[0] = lengths[0]
+
+                    # Convert generated[1] to padded tensor. This is done because lengths[1] can change to something else other than params.max_len + 2
                     generated[:,1] = padded_tensor.squeeze(1)
                     lengths[1] = torch.tensor([params.max_len + 2])
 
@@ -311,18 +316,7 @@ def main(params):
                                 (1 - F.cosine_similarity(torch.mean(enc1[0], dim=0).unsqueeze(0), torch.mean(generated_enc1[0], dim=0).unsqueeze(0)).item(),
                                  1 - F.cosine_similarity(torch.mean(generated_enc1[0], dim=0).unsqueeze(0), torch.mean(enc2[0], dim=0).unsqueeze(0)).item()))
                     logger.info((1 - generated_pred[0].item() <= torch.sigmoid(classifier(enc1).squeeze(1))[0].item())) 
-
-                    if gen != prev:
-                        logger.info("Setting modified_enc1 to generated_enc1")
-                        prev = gen
-                        # modified_enc1.requires_grad = False
-                        # modified_enc1[0] = generated_enc1[0]
-                        # modified_enc1.requires_grad = True
-                        modified_enc1 = generated_enc1.detach().clone()
-                        modified_enc1.requires_grad = True
-                        modified_len1[0] = lengths[0]
-
-                        opt = get_optimizer([modified_enc1], params.optimizer)
+                    logger.info(modified_len1)
 
                     if torch.all(prev_modified_enc1[0] == modified_enc1[0]) == True:
                         logger.info("Modified encoder output has not changed. Continuing")
