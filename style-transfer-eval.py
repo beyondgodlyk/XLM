@@ -266,7 +266,7 @@ def main(params):
                     # This makes sure that the output sentence can never be greater than len1[0] because 
                     # the gradient just keeps on becoming 0. Although using modified_len1[0] is a correct.
                     # Good way to restrict though.
-                    modified_enc1.grad[0][modified_len1[0]:] = 0
+                    # modified_enc1.grad[0][modified_len1[0]:] = 0
 
                     if params.clip_grad_norm > 0:
                         clip_grad_norm_([modified_enc1], params.clip_grad_norm)
