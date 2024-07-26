@@ -201,7 +201,7 @@ def main(params):
     assert params.batch_size == 1
 
     for lang in params.langs:
-        for label_pair in [(0, 1), (1, 0)]:
+        for label_pair in [(0,1), (1,0)]:
             src_iterator = data['tst'][lang][label_pair][0].get_iterator(shuffle=False, 
                                                                         group_by_size=False, 
                                                                         n_sentences=-1)
@@ -280,7 +280,7 @@ def main(params):
                     
                     # Print min and max of each token
                     # logger.info([(i, modified_enc1[0][i].min().item(), modified_enc1[0][i].max().item()) for i in range(params.max_len + 2)])
-                    idx = 0
+                    idx = params.max_len + 2
                     for i in range(params.max_len + 2):
                         if modified_enc1[0][i].min().item() == 0 and modified_enc1[0][i].max().item() == 0:
                             idx = i
@@ -331,7 +331,7 @@ def main(params):
                     logger.info("Cosine distance b/w orig, gen and gen, gold enc output: %.4e, %.4e" %
                                 (1 - F.cosine_similarity(torch.mean(enc1[0], dim=0).unsqueeze(0), torch.mean(generated_enc1[0], dim=0).unsqueeze(0)).item(),
                                  1 - F.cosine_similarity(torch.mean(generated_enc1[0], dim=0).unsqueeze(0), torch.mean(enc2[0], dim=0).unsqueeze(0)).item()))
-                    logger.info((1 - generated_pred[0].item() <= torch.sigmoid(classifier(enc1).squeeze(1))[0].item())) 
+                    # logger.info((1 - generated_pred[0].item() <= torch.sigmoid(classifier(enc1).squeeze(1))[0].item())) 
                     logger.info(modified_len1)
 
                     if torch.all(prev_modified_enc1[0] == modified_enc1[0]) == True:
@@ -339,7 +339,7 @@ def main(params):
                         break
                     it += 1
                     logger.info("")
-                    if it >= 100 or generated_pred[0] >= 0.99:
+                    if it >= 100 or (generated_pred[0] >= 0.99 if label_pair[1] == 1 else generated_pred[0] <= 0.01):
                         break
                 # TODO : restore segmentation
 
