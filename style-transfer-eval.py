@@ -36,8 +36,6 @@ def get_parser():
                         help="Save the model periodically (0 to disable)")
     # batch parameters
     parser.add_argument("--batch_size", type=int, default=32, help="Number of sentences per batch")
-    parser.add_argument("--max_len", type=int, default=30,
-                        help="Maximum length of sentences (after BPE)")
     parser.add_argument("--tokens_per_batch", type=int, default=-1,
                         help="Number of tokens per batch")
     parser.add_argument("--max_batch_size", type=int, default=0,
@@ -86,6 +84,8 @@ def get_parser():
     # Datasets for EN
     parser.add_argument("--use_yelp_EN_lowercase", type=bool_flag, default=True,
                         help="True if Yelp EN dataset with lowercased text is used for domain adaptive training")
+    parser.add_argument("--remove_long_sentences", type=bool_flag, default=False,
+                        help="True if long sentences are removed from the dataset")
     
     return parser
 
@@ -136,8 +136,14 @@ def load_tst_test_data(params, logger):
             set_dico_parameters(params, data, src_style_data['dico'])
             set_dico_parameters(params, data, tgt_style_data['dico'])
 
-            data['tst'][lang][label_pair] = (TSTDataset(src_style_data['sentences'], src_style_data['positions'], params, label_pair[0]),
-                                             TSTDataset(tgt_style_data['sentences'], tgt_style_data['positions'], params, label_pair[1]))
+            src_tst_dataset = TSTDataset(src_style_data['sentences'], src_style_data['positions'], params, label_pair[0])
+            tgt_tst_dataset = TSTDataset(tgt_style_data['sentences'], tgt_style_data['positions'], params, label_pair[1])
+            
+            if params.remove_long_sentences:
+                src_tst_dataset.remove_long_sentences(params.max_len)
+                tgt_tst_dataset.remove_long_sentences(params.max_len)
+
+            data['tst'][lang][label_pair] = (src_tst_dataset, tgt_tst_dataset)
 
     # TST test data summary
     logger.info('============ Data summary')
@@ -174,12 +180,13 @@ def reload_models(params):
                             classifier_model_params.num_filters, 
                             classifier_model_params.max_len).cuda().eval()
     classifier.load_state_dict(reloaded_classifier['classifier'])
+    params.max_len = classifier_model_params.max_len
 
     return dico, encoder, decoder, classifier
 
-def get_transferred_sentence(len1, lang2_id, enc, decoder, dico, params):
-    generated, lengths = decoder.generate(enc, len1, lang2_id, max_len = params.max_len + 2)
-    return convert_to_text(generated, lengths, dico, params)
+# def get_transferred_sentence(len1, lang2_id, enc, decoder, dico, params):
+#     generated, lengths = decoder.generate(enc, len1, lang2_id, max_len = params.max_len + 2)
+#     return convert_to_text(generated, lengths, dico, params)
 
 def main(params):
 
@@ -189,9 +196,9 @@ def main(params):
     if not os.path.isfile(params.output_path):
         params.output_path = os.path.join(params.dump_path, "%s-%s.txt" % (params.src_lang, params.tgt_lang))
 
-    data = load_tst_test_data(params, logger)
-
     dico, encoder, decoder, classifier = reload_models(params)
+
+    data = load_tst_test_data(params, logger)
 
     # Create a tensor like <EOS> <PAD> <PAD>... <EOS> of size (params.max_len + 2) for 
     # appending to x1 for generating decoder output. This is done because the src_mask 
