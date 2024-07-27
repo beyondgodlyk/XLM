@@ -31,7 +31,11 @@ class TSTEvaluator(Evaluator):
 
         with torch.no_grad():
             for data_set in ['valid', 'test']:
-                self.evaluate_classifier(scores, data_set)
+                # Keep a dictionary length which contains the length of datasets used to evaluate for each label.
+                length = {}
+                for label in self.params.labels:
+                    length[label] = len(self.data['tst'][label][data_set])
+                self.evaluate_classifier(scores, data_set, length)
         
         return scores
 
@@ -44,7 +48,7 @@ class TSTEvaluator(Evaluator):
         for batch in iterator:
             yield batch
     
-    def evaluate_classifier(self, scores, data_set):
+    def evaluate_classifier(self, scores, data_set, length):
         """
         Evaluate classifier on the sentiment data for either valid or test.
         """
@@ -73,14 +77,14 @@ class TSTEvaluator(Evaluator):
                 agg_score = torch.cat((agg_score, score))
                 agg_label = torch.cat((agg_label, torch.Tensor([label]).repeat(score.size()).cuda()))
 
-        assert agg_score.size(0) == (4000 if data_set == 'valid' else 1000)
+        assert agg_score.size(0) == sum(length.values())
         agg_pred = torch.sigmoid(agg_score)
 
         # Accuracy and BCE for the separate datasets
-        scores['BCE-%s-%s' % (data_set, 0)] = F.binary_cross_entropy_with_logits(agg_score[:(2000 if data_set == 'valid' else 500)], agg_label[:(2000 if data_set == 'valid' else 500)]).item()
-        scores['BCE-%s-%s' % (data_set, 1)] = F.binary_cross_entropy_with_logits(agg_score[(2000 if data_set == 'valid' else 500):], agg_label[(2000 if data_set == 'valid' else 500):]).item()
-        scores['ACC-%s-%s' % (data_set, 0)] = binary_accuracy(agg_pred[:(2000 if data_set == 'valid' else 500)], agg_label[:(2000 if data_set == 'valid' else 500)]).item()
-        scores['ACC-%s-%s' % (data_set, 1)] = binary_accuracy(agg_pred[(2000 if data_set == 'valid' else 500):], agg_label[(2000 if data_set == 'valid' else 500):]).item()
+        scores['BCE-%s-%s' % (data_set, 0)] = F.binary_cross_entropy_with_logits(agg_score[:length[0]], agg_label[:length[0]]).item()
+        scores['BCE-%s-%s' % (data_set, 1)] = F.binary_cross_entropy_with_logits(agg_score[length[0]:], agg_label[length[0]:]).item()
+        scores['ACC-%s-%s' % (data_set, 0)] = binary_accuracy(agg_pred[:length[0]], agg_label[:length[0]]).item()
+        scores['ACC-%s-%s' % (data_set, 1)] = binary_accuracy(agg_pred[length[0]:], agg_label[length[0]:]).item()
         
         agg_label = agg_label.long() # convert to long because binary_recall() does and operation and gives error
 
