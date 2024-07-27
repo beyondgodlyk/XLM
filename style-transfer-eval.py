@@ -6,7 +6,7 @@ from torch import linalg as LA
 from torch.nn.utils import clip_grad_norm_
 import sacrebleu
 
-from xlm.utils import AttrDict
+from xlm.utils import AttrDict, restore_segmentation
 from xlm.utils import to_cuda
 from xlm.utils import bool_flag, initialize_exp
 from xlm.data.loader import load_binarized, set_dico_parameters
@@ -66,6 +66,7 @@ def get_parser():
     # training parameters
     parser.add_argument("--optimizer", type=str, default="adam,lr=0.0001",
                         help="Optimizer (SGD / RMSprop / Adam, etc.)")
+    parser.add_argument("--learning_rates", type=str, default="0.05,0.07,0.09,0.1,0.12",)
     parser.add_argument("--clip_grad_norm", type=float, default=5,
                         help="Clip gradients norm (0 to disable)")
         
@@ -119,6 +120,9 @@ def check_params(params):
         for p1, p2 in paths.values():
             assert os.path.isfile(p1), "%s not found" % p1
             assert os.path.isfile(p2), "%s not found" % p2
+
+    # Parse learning rates
+    params.learning_rates = [float(lr) for lr in params.learning_rates.split(',')]
 
 def load_tst_test_data(params, logger):
     data = {}
@@ -208,6 +212,7 @@ def main(params):
     assert params.batch_size == 1
 
     for lang in params.langs:
+        outputs = []
         for label_pair in [(0,1), (1,0)]:
             src_iterator = data['tst'][lang][label_pair][0].get_iterator(shuffle=False, 
                                                                         group_by_size=False, 
@@ -242,115 +247,95 @@ def main(params):
                 enc2 = enc2.transpose(0, 1)
                 enc2_pred = torch.sigmoid(classifier(enc2).squeeze(1))[0]
                 logger.info("Gold Pred: %.10e" % enc2_pred)
-
-                # Clone detached encoder output to be modified iteratively
-                modified_enc1 = enc1.detach().clone()
-                modified_enc1.requires_grad = True
-
-                modified_len1 = len1.clone()
                 
-                opt = get_optimizer([modified_enc1], params.optimizer)
-                it = 0
-                
-                while True:
+                output = None
+
+                for lr in params.learning_rates:
+                    if output is not None:
+                        break
+
+                    # Clone detached encoder output to be modified iteratively
+                    modified_enc1 = enc1.detach().clone()
+                    modified_enc1.requires_grad = True
+
+                    assert params.optimizer.find('lr') != -1
+                    cur_opt_params = params.optimizer.split('=')
+                    cur_opt_params[-1] = str(lr)
+                    cur_opt_params = '='.join(cur_opt_params)
+                    logger.info("Using optimizer with LR: %s" % cur_opt_params)
+
+                    opt = get_optimizer([modified_enc1], cur_opt_params)
+                    it = 0
                     
-                    logger.info("L2 dist b/w orig, modi and modi, gold enc output: %.4e, %.4e" %
-                                (LA.vector_norm(torch.mean(enc1[0], dim=0) - torch.mean(modified_enc1[0], dim=0)).item(), 
-                                 LA.vector_norm(torch.mean(modified_enc1[0], dim=0) - torch.mean(enc2[0], dim=0)).item()))
-                    logger.info("Cosine distance b/w orig, modi and modi, gold enc output: %.4e, %.4e" %
-                                (1 - F.cosine_similarity(torch.mean(enc1[0], dim=0).unsqueeze(0), torch.mean(modified_enc1[0], dim=0).unsqueeze(0)).item(),
-                                 1 - F.cosine_similarity(torch.mean(modified_enc1[0], dim=0).unsqueeze(0), torch.mean(enc2[0], dim=0).unsqueeze(0)).item()))
+                    while True:
+                        
+                        prev_modified_enc1 = modified_enc1.detach().clone()
+                        
+                        score = classifier(modified_enc1).squeeze(1)
+                        pred = torch.sigmoid(score)
+                        loss = F.binary_cross_entropy_with_logits(score, torch.Tensor([label_pair[1]]).repeat(score.size()).cuda(), reduction='none')
+                        opt.zero_grad()
+                        loss[0].backward()
 
-                    prev_modified_enc1 = modified_enc1.detach().clone()
-                    
-                    score = classifier(modified_enc1).squeeze(1)
-                    pred = torch.sigmoid(score)
-                    loss = F.binary_cross_entropy_with_logits(score, torch.Tensor([label_pair[1]]).repeat(score.size()).cuda(), reduction='none')
+                        if params.clip_grad_norm > 0:
+                            clip_grad_norm_([modified_enc1], params.clip_grad_norm)
+                        opt.step()
 
-                    opt.zero_grad()
+                        idx = params.max_len + 2
+                        for i in range(params.max_len + 2):
+                            if modified_enc1[0][i].min().item() == 0 and modified_enc1[0][i].max().item() == 0:
+                                idx = i
+                                break
+                        
+                        # Make sure that padded tensor is unchanged. Check if this is required or is even correct
+                        assert torch.all(modified_enc1[1] == enc1[1])
+                        
+                        logger.info("Iteration %d, Pred: %.10e, Loss: %.10e, Gradient Norm: %.10e, LR: %.4e" % 
+                                    (it, pred[0], loss[0].item(), LA.matrix_norm(modified_enc1.grad.data[0]).item(), 
+                                    opt.param_groups[0]['lr']))
+                        
+                        idx_len = len1.clone()
+                        idx_len[0] = torch.tensor([idx])
+                        generated, lengths = decoder.generate(modified_enc1, idx_len, params.tgt_id, max_len = params.max_len + 2)
+                        
+                        logger.info("Modified sentence with len1: %s" % convert_to_text(generated, lengths, dico, params)[0])
+                        
+                        # Convert generated[1] to padded tensor. This is done because lengths[1] can change to something else other than params.max_len + 2
+                        generated[:,1] = padded_tensor.squeeze(1)
+                        lengths[1] = torch.tensor([params.max_len + 2])
 
-                    loss[0].backward()
+                        generated_enc1 = encoder('fwd', x=generated, lengths=lengths, langs=langs1, causal=False)
+                        generated_enc1 = generated_enc1.transpose(0, 1)
 
-                    # Set gradients after len1[0] to be zero. Actually wrong because length changes. 
-                    # This makes sure that the output sentence can never be greater than len1[0] because 
-                    # the gradient just keeps on becoming 0. Although using modified_len1[0] is a correct.
-                    # Good way to restrict though.
-                    # modified_enc1.grad[0][len1[0]:] = 0
-                    # modified_enc1.grad[0][modified_len1[0]:] = 0
+                        generated_score = classifier(generated_enc1).squeeze(1)
+                        generated_pred = torch.sigmoid(generated_score)
+                        logger.info("Generated Pred: %.10e" % generated_pred[0])
 
-                    if params.clip_grad_norm > 0:
-                        clip_grad_norm_([modified_enc1], params.clip_grad_norm)
-                    opt.step()
-
-                    # Print norms of gradients for each token. Used to verify if the gradient is focused on style tokens
-                    # logger.info([(i, LA.vector_norm(modified_enc1.grad[0][i]).item()) for i in range(params.max_len + 2)])
-                    
-                    # Print min and max of each token
-                    # logger.info([(i, modified_enc1[0][i].min().item(), modified_enc1[0][i].max().item()) for i in range(params.max_len + 2)])
-                    idx = params.max_len + 2
-                    for i in range(params.max_len + 2):
-                        if modified_enc1[0][i].min().item() == 0 and modified_enc1[0][i].max().item() == 0:
-                            idx = i
+                        if torch.all(prev_modified_enc1[0] == modified_enc1[0]) == True:
+                            logger.info("Modified encoder output has not changed. Continuing")
                             break
-                    logger.info("First token with zero: %d" % idx)
-                    
-                    # Make sure that padded tensor is unchanged. Check if this is required or is even correct
-                    assert torch.all(modified_enc1[1] == enc1[1])
-                    
-                    # logger.info("Min and max of Gradient: %.4e, %.4e" % (modified_enc1.grad.data[0].min().item(),
-                                                                            # modified_enc1.grad.data[0].max().item()))
-                    logger.info("Iteration %d, Pred: %.10e, Loss: %.10e, Gradient Norm: %.10e, LR: %.4e" % 
-                                (it, pred[0], loss[0].item(), LA.matrix_norm(modified_enc1.grad.data[0]).item(), 
-                                 opt.param_groups[0]['lr']))
-                    
-                    # Decide whether to use modified_len1 or len1 or idx
-                    idx_len = len1.clone()
-                    idx_len[0] = torch.tensor([idx])
-                    generated, lengths = decoder.generate(modified_enc1, idx_len, params.tgt_id, max_len = params.max_len + 2)
-                    # generated, lengths = decoder.generate(modified_enc1, modified_len1, params.tgt_id, max_len = params.max_len + 2)
-                    
-                    logger.info("Modified sentence with len1: %s" % convert_to_text(generated, lengths, dico, params)[0])
-                    
-                    # Change length corresponding to modified_enc1[0] to be the length of generated[0]
-                    modified_len1[0] = lengths[0]
+                        it += 1
+                        logger.info("")
 
-                    # Convert generated[1] to padded tensor. This is done because lengths[1] can change to something else other than params.max_len + 2
-                    generated[:,1] = padded_tensor.squeeze(1)
-                    lengths[1] = torch.tensor([params.max_len + 2])
+                        # Breaking conditions
+                        if generated_pred[0] >= 0.9 if label_pair[1] == 1 else generated_pred[0] <= 0.1:
+                            output = convert_to_text(generated, lengths, dico, params)[0]
+                            logger.info("Breaking since converged")
+                            break
 
-                    generated_enc1 = encoder('fwd', x=generated, lengths=lengths, langs=langs1, causal=False)
-                    generated_enc1 = generated_enc1.transpose(0, 1)
+                        if it >= 100:
+                            logger.info("Max iterations reached. Breaking")
+                            break
+                
+                outputs.append(output)
+        logger.info("Saving outputs to file")
+        output_path = os.path.join(params.dump_path, "outputs.txt")
+        # export sentences to output file / restore BPE segmentation
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(outputs) + '\n')
+        restore_segmentation(output_path)
 
-                    generated_score = classifier(generated_enc1).squeeze(1)
-                    generated_pred = torch.sigmoid(generated_score)
-                    logger.info("Generated Pred: %.10e" % generated_pred[0])
 
-                    # orig and gold are considered references and gen is hypothesis
-                    gen = convert_to_text(generated, lengths, dico, params)[0]
-                    orig = convert_to_text(x1, len1, dico, params)[0]
-                    gold = convert_to_text(x2, len2, dico, params)[0]
-                    logger.info("BLEU score between gen,orig and gen,gold: %.4f, %.4f" %
-                                (sacrebleu.corpus_bleu([gen], [[orig]], tokenize='none').score,
-                                 sacrebleu.corpus_bleu([gen], [[gold]], tokenize='none').score))
-                    logger.info("L2 dist b/w orig, gen and gen, gold enc output: %.4e, %.4e" %
-                                (LA.vector_norm(torch.mean(enc1[0], dim=0) - torch.mean(generated_enc1[0], dim=0)).item(), 
-                                 LA.vector_norm(torch.mean(generated_enc1[0], dim=0) - torch.mean(enc2[0], dim=0)).item()))
-                    logger.info("Cosine distance b/w orig, gen and gen, gold enc output: %.4e, %.4e" %
-                                (1 - F.cosine_similarity(torch.mean(enc1[0], dim=0).unsqueeze(0), torch.mean(generated_enc1[0], dim=0).unsqueeze(0)).item(),
-                                 1 - F.cosine_similarity(torch.mean(generated_enc1[0], dim=0).unsqueeze(0), torch.mean(enc2[0], dim=0).unsqueeze(0)).item()))
-                    # logger.info((1 - generated_pred[0].item() <= torch.sigmoid(classifier(enc1).squeeze(1))[0].item())) 
-                    logger.info(modified_len1)
-
-                    if torch.all(prev_modified_enc1[0] == modified_enc1[0]) == True:
-                        logger.info("Modified encoder output has not changed. Continuing")
-                        break
-                    it += 1
-                    logger.info("")
-                    if it >= 100 or (generated_pred[0] >= 0.99 if label_pair[1] == 1 else generated_pred[0] <= 0.01):
-                        break
-                # TODO : restore segmentation
-
-                    
 
 
 
