@@ -242,11 +242,14 @@ def main(params):
 
                 enc1 = encoder('fwd', x=x1, lengths=len1, langs=langs1, causal=False)
                 enc1 = enc1.transpose(0, 1)
+                enc1_pred = torch.sigmoid(classifier(enc1).squeeze(1))[0]
 
                 enc2 = encoder('fwd', x=x2, lengths=len2, langs=langs2, causal=False)
                 enc2 = enc2.transpose(0, 1)
                 enc2_pred = torch.sigmoid(classifier(enc2).squeeze(1))[0]
-                logger.info("Gold Pred: %.10e" % enc2_pred)
+
+
+                logger.info("Orig Pred: %.10e and Gold Pred: %.10e and sum %.10e" % (enc1_pred, enc2_pred, enc1_pred + enc2_pred))
                 
                 output = None
 
@@ -324,7 +327,11 @@ def main(params):
                             break
 
                         if it >= 100:
-                            logger.info("Max iterations reached. Breaking")
+                            if lr == params.learning_rates[-1]:
+                                output = convert_to_text(generated, lengths, dico, params)[0]
+                                logger.info("Couldn't converge. So setting output to last generated sentence")
+                            else:
+                                logger.info("Max iterations reached. Breaking")
                             break
                 
                 outputs.append(output)
