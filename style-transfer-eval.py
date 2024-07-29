@@ -270,6 +270,9 @@ def main(params):
                     opt = get_optimizer([modified_enc1], cur_opt_params)
                     it = 0
                     
+                    prev = convert_to_text(x1, len1, dico, params)[0]
+                    prev_pred = enc1_pred
+
                     while True:
                         
                         prev_modified_enc1 = modified_enc1.detach().clone()
@@ -301,7 +304,8 @@ def main(params):
                         idx_len[0] = torch.tensor([idx])
                         generated, lengths = decoder.generate(modified_enc1, idx_len, params.tgt_id, max_len = params.max_len + 2)
                         
-                        logger.info("Modified sentence with len1: %s" % convert_to_text(generated, lengths, dico, params)[0])
+                        gen = convert_to_text(generated, lengths, dico, params)[0]
+                        logger.info("Modified sentence with idx_len: %s" % gen)
                         
                         # Convert generated[1] to padded tensor. This is done because lengths[1] can change to something else other than params.max_len + 2
                         generated[:,1] = padded_tensor.squeeze(1)
@@ -314,6 +318,18 @@ def main(params):
                         generated_pred = torch.sigmoid(generated_score)
                         logger.info("Generated Pred: %.10e" % generated_pred[0])
 
+                        if gen != prev:
+                            if (generated_pred[0] > prev_pred) if label_pair[1] == 1 else (generated_pred[0] < prev_pred):
+                                logger.info("Setting modified_enc1 to generated_enc1")
+                                prev = gen
+                                prev_pred = generated_pred[0]
+
+                                modified_enc1 = generated_enc1.detach().clone()
+                                modified_enc1.requires_grad = True
+                                opt = get_optimizer([modified_enc1], cur_opt_params)
+                            else:
+                                logger.info("Generated sentence has lower score. Continuing")
+
                         if torch.all(prev_modified_enc1[0] == modified_enc1[0]) == True:
                             logger.info("Modified encoder output has not changed. Continuing")
                             break
@@ -321,15 +337,15 @@ def main(params):
                         logger.info("")
 
                         # Breaking conditions
-                        if generated_pred[0] >= 0.9 if label_pair[1] == 1 else generated_pred[0] <= 0.1:
-                            output = convert_to_text(generated, lengths, dico, params)[0]
-                            logger.info("Breaking since converged")
+                        if (prev_pred >= 1 - params.threshold) if label_pair[1] == 1 else (prev_pred <= params.threshold:
+                            output = prev
+                            logger.info("Setting output to previous best sentence saved and breaking since converged")
                             break
 
-                        if it >= 100:
-                            if lr == params.learning_rates[-1]:
-                                output = convert_to_text(generated, lengths, dico, params)[0]
-                                logger.info("Couldn't converge. So setting output to last generated sentence")
+                        if it >= 50:
+                            if lr == params.learning_rates[-1] and output is None:
+                                output = prev
+                                logger.info("Couldn't converge. So setting output to previous best sentence saved")
                             else:
                                 logger.info("Max iterations reached. Breaking")
                             break
