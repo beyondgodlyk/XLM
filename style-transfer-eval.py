@@ -69,6 +69,10 @@ def get_parser():
     parser.add_argument("--learning_rates", type=str, default="0.05,0.07,0.09,0.1,0.12",)
     parser.add_argument("--clip_grad_norm", type=float, default=5,
                         help="Clip gradients norm (0 to disable)")
+    
+    # threshold for accepting the response
+    parser.add_argument("--threshold", type=float, default=0.2,
+                        help="Threshold for accepting the response")
         
     # float16 / AMP API
     parser.add_argument("--amp", type=int, default=-1,
@@ -337,9 +341,9 @@ def main(params):
                         logger.info("")
 
                         # Breaking conditions
-                        if (prev_pred >= 1 - params.threshold) if label_pair[1] == 1 else (prev_pred <= params.threshold:
-                            output = prev
-                            logger.info("Setting output to previous best sentence saved and breaking since converged")
+                        if generated_pred[0] >= 1 - params.threshold if label_pair[1] == 1 else generated_pred[0] <= params.threshold:
+                            output = gen
+                            logger.info("Breaking since converged")
                             break
 
                         if it >= 50:
