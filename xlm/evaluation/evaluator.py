@@ -457,6 +457,7 @@ class EncDecEvaluator(Evaluator):
             # target words to predict
             alen = torch.arange(len2.max(), dtype=torch.long, device=len2.device)
             pred_mask = alen[:, None] < len2[None] - 1  # do not predict anything given the last target word
+            logger.info(pred_mask.size())
             y = x2[1:].masked_select(pred_mask[:-1])
             assert len(y) == (len2 - 1).sum().item()
 
