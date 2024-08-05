@@ -21,7 +21,5 @@ def detokenize_files(src_file_path, dest_file_path):
 if __name__ == '__main__':
     src_file_path = sys.argv[1]
     dest_file_path = sys.argv[2]
-    print(src_file_path)
-    print(dest_file_path)
     assert os.path.isfile(src_file_path), "Source file path does not exist"
     detokenize_files(src_file_path, dest_file_path)

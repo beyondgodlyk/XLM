@@ -33,7 +33,7 @@ for d in */ ; do
         echo $(readlink -f $f)
         echo $TOKENIZED_OUTPUTS_PATH/$d$f.detok
         $DETOKENIZER_PATH/detokenize-files.py "$(readlink -f $f)" "$TOKENIZED_OUTPUTS_PATH/$d$f.detok"
-        eval "cat $TOKENIZED_OUTPUTS_PATH/$d$f.detok | $SRC_PREPROCESSING > $TOKENIZED_OUPUTS_PATH/$d$f.tok"
+        eval "cat $TOKENIZED_OUTPUTS_PATH/$d$f.detok | $SRC_PREPROCESSING > $TOKENIZED_OUTPUTS_PATH/$d$f.tok"
         rm $TOKENIZED_OUTPUTS_PATH/$d$f.detok
     done
     cd ..
