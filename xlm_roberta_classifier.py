@@ -171,6 +171,13 @@ def load_tst_train_data(params, logger, text_transform):
 
     return data
 
+def collate_fn(batch):
+    """
+    Collate function to be used when creating a DataLoader.
+    """
+    data, labels = zip(*batch)
+    return data, labels
+
 def main(params):
 
     # initialize the experiment
@@ -194,7 +201,7 @@ def main(params):
 
     for epoch in range(params.max_epoch):
         xlm_classifier.train()
-        train_loader = DataLoader(data['xlm_classifier']['train'], batch_size = 32, shuffle=True)
+        train_loader = DataLoader(data['xlm_classifier']['train'], batch_size = 32, shuffle=True, collate_fn=collate_fn)
         for batch in train_loader:
             print(batch)
             exit()
