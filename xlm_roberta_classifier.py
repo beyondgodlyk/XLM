@@ -175,7 +175,7 @@ def collate_fn(batch):
     """
     Collate function to be used when creating a DataLoader.
     """
-    data = [item[0] for item in batch]
+    data = [item[0] for item in batch] # Size B X S
     labels = [item[1] for item in batch]
     return data, labels
 
@@ -200,45 +200,41 @@ def main(params):
     optim = AdamW(xlm_classifier.parameters(), lr=learning_rate)
     criteria = nn.CrossEntropyLoss()
 
+    score_tracker = []
+    epoch_for_best_score = -1
     for epoch in range(params.max_epoch):
         xlm_classifier.train()
         train_loader = DataLoader(data['xlm_classifier']['train'], batch_size = 32, shuffle=True, collate_fn=collate_fn)
         for batch in train_loader:
-            print(batch[0])
-            exit()
+            output = xlm_classifier(batch[0])
+            loss = criteria(output, batch[1])
+            optim.zero_grad()
+            loss.backward()
+            optim.step()
 
-
-    # trainer = XLMClassifierTrainer(xlm_classifier, data, params)
-    # evaluator = TSTEvaluator(trainer, data, params)
-
-    # for _ in range(params.max_epoch):
-
-    #     logger.info("============ Starting epoch %i ... ============" % trainer.epoch)
-
-    #     trainer.n_sentences = 0
-
-    #     while trainer.n_sentences < trainer.epoch_size:
-    #         for label in random.sample(params.labels, len(params.labels)):
-    #             trainer.classifier_step(label)
-
-    #         trainer.iter()
-        
-    #     logger.info("============ End of epoch %i ============" % trainer.epoch)
-        
-    #     # Evaluate on classification metrics
-    #     scores = evaluator.run_all_evals(trainer)
-
-    #     # print / JSON log
-    #     for k, v in scores.items():
-    #         logger.info("%s -> %.6f" % (k, v))
-    #     if params.is_master:
-    #         logger.info("__log__:%s" % json.dumps(scores))
-
-    #     # end of epoch
-    #     trainer.save_best_model(scores)
-    #     trainer.save_periodic()
-    #     trainer.end_epoch(scores)
-
+        with torch.no_grad():
+            xlm_classifier.eval()
+            valid_loader = DataLoader(data['xlm_classifier']['valid'], batch_size = 32, shuffle=False, collate_fn=collate_fn)
+            total = 0
+            correct = 0
+            total_loss = 0
+            for batch in valid_loader:
+                output = xlm_classifier(batch[0])
+                loss = criteria(output, batch[1])
+                total_loss += loss.item()
+                _, predicted = torch.max(output, 1)
+                total += len(batch[1])
+                correct += (predicted == batch[1]).sum().item()
+            accuracy = correct / total
+            logger.info(f'Epoch {epoch} - Loss: {total_loss} - Accuracy: {accuracy}')
+            if epoch_for_best_score == -1 or accuracy > max(score_tracker):
+                epoch_for_best_score = epoch
+                torch.save(xlm_classifier.state_dict(), "best_model.pt")
+                print(f"Best model saved for epoch {epoch}.")
+            score_tracker.append(accuracy)
+            if epoch - epoch_for_best_score > 5:
+                break
+        torch.save(xlm_classifier.state_dict(), f"model_{epoch}.pt")
 
 if __name__ == '__main__':
 
