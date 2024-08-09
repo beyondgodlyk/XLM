@@ -175,7 +175,8 @@ def collate_fn(batch):
     """
     Collate function to be used when creating a DataLoader.
     """
-    data, labels = zip(*batch)
+    data = [item[0] for item in batch]
+    labels = [item[1] for item in batch]
     return data, labels
 
 def main(params):
