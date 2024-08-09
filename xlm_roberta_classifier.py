@@ -145,7 +145,7 @@ def load_tst_train_data(params, logger, text_transform):
         for label in params.labels:
             data['tst'][label] = {}
             for splt in ['train', 'valid', 'test']:
-                style_data = load_tokenized_data(params.tst_train_dataset[lang][splt][label], params)
+                style_data = load_tokenized_data(params.tst_train_dataset[lang][splt][label], params, text_transform)
                 data['tst'][label][splt] = SentenceDataset(style_data, [label] * len(style_data))
 
     # TST train data summary
