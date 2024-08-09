@@ -194,7 +194,7 @@ def main(params):
 
     for epoch in range(params.max_epoch):
         xlm_classifier.train()
-        train_loader = DataLoader(data['xlm_classifier']['train'], batch_size = 32, sampler = RandomSampler(data['xlm_classifier']['train']))
+        train_loader = DataLoader(data['xlm_classifier']['train'], batch_size = 32, shuffle=True)
         for batch in train_loader:
             print(batch)
             exit()
