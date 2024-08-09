@@ -129,7 +129,7 @@ def check_params(params):
 
     params.labels = [0, 1]
 
-    params.tst_train_dataset = {
+    params.xlm_classifier_train_dataset = {
         lang: {
             splt: (os.path.join(params.data_path, 'tst.%s.0.%s.tok' % (splt, lang)),
                    os.path.join(params.data_path, 'tst.%s.1.%s.tok' % (splt, lang)))
@@ -151,20 +151,28 @@ def load_tokenized_data(path, params, text_transform):
 
 def load_tst_train_data(params, logger, text_transform):
     data = {}
-    data['tst'] = {}
+    data['xlm_classifier'] = {}
 
     for lang in params.langs:
         for label in params.labels:
             data['tst'][label] = {}
             for splt in ['train', 'valid', 'test']:
-                style_data = load_tokenized_data(params.tst_train_dataset[lang][splt][label], params, text_transform)
+                style_data = load_tokenized_data(params.xlm_classifier_train_dataset[lang][splt][label], params, text_transform)
                 data['tst'][label][splt] = SentenceDataset(style_data, [label] * len(style_data))
+    
+    for lang in params.langs:
+        for splt in ['train', 'valid', 'test']:
+            style_data = []
+            labels = []
+            for label in params.labels:
+                style_data += load_tokenized_data(params.xlm_classifier_train_dataset[lang][splt][label], params, text_transform)
+                labels += [label] * len(style_data)
+            data['xlm_classifier'][splt] = SentenceDataset(style_data, labels)
 
     # TST train data summary
     logger.info('============ Data summary')
-    for label, v in data['tst'].items():
-        for data_set in v.keys():
-            logger.info('{: <18} - {: >5} - {: >12}:{: >10}'.format('TST train data', data_set, label, len(v[data_set])))
+    for data_set, v in data['xlm_classifier'].items():
+        logger.info('{: <18} - {: >5} - {: >10}'.format('XLM Classifier train data', data_set, len(v[data_set])))
 
     return data
 
@@ -185,7 +193,7 @@ def main(params):
     text_transform = XLMR_BASE_ENCODER.transform()
 
     data = load_tst_train_data(params, logger, text_transform)
-    print(data['tst'][0]['train'][0])
+    print(data['xlm_classifier']['train'][0])
 
 
 
