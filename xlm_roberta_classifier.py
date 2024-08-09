@@ -219,7 +219,7 @@ def main(params):
             loss.backward()
             optim.step()
             sent += len(batch[1])
-            if sent % 10000 == 0:
+            if sent % 1024 == 0:
                 logger.info(f'Epoch {epoch} - Sentences: {sent} - Loss: {loss.item()}')
 
         with torch.no_grad():
