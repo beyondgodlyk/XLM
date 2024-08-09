@@ -210,6 +210,7 @@ def main(params):
     for epoch in range(params.max_epoch):
         xlm_classifier.train()
         train_loader = DataLoader(data['xlm_classifier']['train'], batch_size = 32, shuffle=True, collate_fn=collate_fn)
+        sent = 0
         for batch in train_loader:
             input = F.to_tensor(batch[0], padding_value=padding_idx).to(DEVICE)
             output = xlm_classifier(input)
@@ -217,6 +218,9 @@ def main(params):
             optim.zero_grad()
             loss.backward()
             optim.step()
+            sent += len(batch[1])
+            if sent % 10000 == 0:
+                logger.info(f'Epoch {epoch} - Sentences: {sent} - Loss: {loss.item()}')
 
         with torch.no_grad():
             xlm_classifier.eval()
