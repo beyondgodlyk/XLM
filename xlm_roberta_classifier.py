@@ -209,7 +209,7 @@ def main(params):
     epoch_for_best_score = -1
     for epoch in range(params.max_epoch):
         xlm_classifier.train()
-        train_loader = DataLoader(data['xlm_classifier']['train'], batch_size = 32, shuffle=True, collate_fn=collate_fn)
+        train_loader = DataLoader(data['xlm_classifier']['train'], batch_size = params.batch_size, shuffle=True, collate_fn=collate_fn)
         sent = 0
         for batch in train_loader:
             input = F.to_tensor(batch[0], padding_value=padding_idx).to(DEVICE)
@@ -219,7 +219,7 @@ def main(params):
             loss.backward()
             optim.step()
             sent += len(batch[1])
-            if sent % 1024 == 0:
+            if sent % 5*params.batch_size == 0:
                 logger.info(f'Epoch {epoch} - Sentences: {sent} - Loss: {loss.item()}')
 
         with torch.no_grad():
@@ -243,7 +243,7 @@ def main(params):
                 torch.save(xlm_classifier.state_dict(), "best_model.pt")
                 print(f"Best model saved for epoch {epoch}.")
             score_tracker.append(accuracy)
-            if epoch - epoch_for_best_score > 5:
+            if epoch - epoch_for_best_score > 3:
                 break
         torch.save(xlm_classifier.state_dict(), f"model_{epoch}.pt")
 
