@@ -4,7 +4,7 @@ import os
 
 def get_parser():
     parser = argparse.ArgumentParser(description="Find PPL of a given file")
-    parser.add_argument("--model_path", type=str, help="Path to the model")
+    parser.add_argument("--model_path", type=str, default="yelp_5_gram_disc_fall.binary", help="Path to the model")
     parser.add_argument("--file_path", type=str, default="", help="Path to the file")
     parser.add_argument("--print_list", type=bool, default=False, help="Print list of PPLs")
     return parser
