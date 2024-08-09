@@ -16,6 +16,18 @@ from xlm.utils import bool_flag, initialize_exp
 from torch.utils.data import Dataset
 from torchtext.models import RobertaClassificationHead, XLMR_BASE_ENCODER
 
+
+class SentenceDataset(Dataset):
+    def __init__(self, data, labels):
+        self.data = data
+        self.labels = labels
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        return self.data[idx], self.labels[idx]
+
 def get_parser():
     """
     Generate a parameters parser.
@@ -221,15 +233,3 @@ if __name__ == '__main__':
 
     check_params(params)
     main(params)
-
-
-class SentenceDataset(Dataset):
-    def __init__(self, data, labels):
-        self.data = data
-        self.labels = labels
-
-    def __len__(self):
-        return len(self.data)
-
-    def __getitem__(self, idx):
-        return self.data[idx], self.labels[idx]
