@@ -214,7 +214,8 @@ def main(params):
         for batch in train_loader:
             input = F.to_tensor(batch[0], padding_value=padding_idx).to(DEVICE)
             output = xlm_classifier(input)
-            loss = criteria(output, torch.tensor(batch[1], dtype=torch.long).to(DEVICE))
+            target = torch.tensor(batch[1], dtype=torch.long).to(DEVICE)
+            loss = criteria(output, target)
             optim.zero_grad()
             loss.backward()
             optim.step()
@@ -231,11 +232,12 @@ def main(params):
             for batch in valid_loader:
                 input = F.to_tensor(batch[0], padding_value=padding_idx).to(DEVICE)
                 output = xlm_classifier(input)
-                loss = criteria(output, torch.tensor(batch[1], dtype=torch.long).to(DEVICE))
+                target = torch.tensor(batch[1], dtype=torch.long).to(DEVICE)
+                loss = criteria(output, target)
                 total_loss += loss.item()
                 _, predicted = torch.max(output, 1)
                 total += len(batch[1])
-                correct += (predicted == batch[1]).sum().item()
+                correct += (predicted == target).sum().item()
             accuracy = correct / total
             logger.info(f'Epoch {epoch} - Loss: {total_loss} - Accuracy: {accuracy}')
             if epoch_for_best_score == -1 or accuracy > max(score_tracker):
