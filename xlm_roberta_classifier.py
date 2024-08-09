@@ -203,7 +203,7 @@ def main(params):
         xlm_classifier.train()
         train_loader = DataLoader(data['xlm_classifier']['train'], batch_size = 32, shuffle=True, collate_fn=collate_fn)
         for batch in train_loader:
-            print(batch)
+            print(batch[0])
             exit()
 
 
