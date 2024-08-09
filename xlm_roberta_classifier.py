@@ -7,7 +7,7 @@ import os
 import argparse
 import torch
 import random
-
+import torch.nn as nn
 
 from xlm.utils import to_cuda
 
@@ -15,7 +15,9 @@ from xlm.utils import bool_flag, initialize_exp
 
 from torch.utils.data import Dataset
 from torchtext.models import RobertaClassificationHead, XLMR_BASE_ENCODER
-
+from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
+import torchtext.functional as F
+from torch.optim import AdamW
 
 class SentenceDataset(Dataset):
     def __init__(self, data, labels):
@@ -152,13 +154,6 @@ def load_tokenized_data(path, params, text_transform):
 def load_tst_train_data(params, logger, text_transform):
     data = {}
     data['xlm_classifier'] = {}
-
-    # for lang in params.langs:
-    #     for label in params.labels:
-    #         data['tst'][label] = {}
-    #         for splt in ['train', 'valid', 'test']:
-    #             style_data = load_tokenized_data(params.xlm_classifier_train_dataset[lang][splt][label], params, text_transform)
-    #             data['tst'][label][splt] = SentenceDataset(style_data, [label] * len(style_data))
     
     for lang in params.langs:
         for splt in ['train', 'valid', 'test']:
@@ -184,17 +179,25 @@ def main(params):
     if not os.path.isfile(params.output_path):
         params.output_path = os.path.join(params.dump_path, "%s-%s.txt" % (params.src_lang, params.tgt_lang))
 
-    # num_classes = 2
-    # input_dim = 768
-    # classifier_head = RobertaClassificationHead(num_classes=num_classes, input_dim=input_dim)
-    # xlm_classifier = XLMR_BASE_ENCODER.get_model(head=classifier_head)
-    # xlm_classifier.to('cuda')
+    num_classes = 2
+    input_dim = 768
+    classifier_head = RobertaClassificationHead(num_classes=num_classes, input_dim=input_dim)
+    xlm_classifier = XLMR_BASE_ENCODER.get_model(head=classifier_head)
+    xlm_classifier.to('cuda')
 
     text_transform = XLMR_BASE_ENCODER.transform()
 
     data = load_tst_train_data(params, logger, text_transform)
-    print(data['xlm_classifier']['train'][0])
+    learning_rate = 1e-5
+    optim = AdamW(xlm_classifier.parameters(), lr=learning_rate)
+    criteria = nn.CrossEntropyLoss()
 
+    for epoch in range(params.max_epoch):
+        xlm_classifier.train()
+        train_loader = DataLoader(data['xlm_classifier']['train'], batch_size = 32, sampler = RandomSampler(data['xlm_classifier']['train']))
+        for batch in train_loader:
+            print(batch)
+            exit()
 
 
     # trainer = XLMClassifierTrainer(xlm_classifier, data, params)
