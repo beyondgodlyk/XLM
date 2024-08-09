@@ -213,6 +213,8 @@ def main(params):
         for batch in train_loader:
             input = F.to_tensor(batch[0], padding_value=padding_idx).to(DEVICE)
             output = xlm_classifier(input)
+            print(output.get_device())
+            print(torch.Tensor(batch[1], dtype=torch.long).to(DEVICE).get_device())
             loss = criteria(output, torch.Tensor(batch[1], dtype=torch.long).to(DEVICE))
             optim.zero_grad()
             loss.backward()
