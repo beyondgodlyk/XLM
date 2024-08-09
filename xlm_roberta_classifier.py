@@ -187,6 +187,11 @@ def main(params):
     if not os.path.isfile(params.output_path):
         params.output_path = os.path.join(params.dump_path, "%s-%s.txt" % (params.src_lang, params.tgt_lang))
 
+    padding_idx = 1
+    bos_idx = 0
+    eos_idx = 2
+    DEVICE = 'cuda'
+
     num_classes = 2
     input_dim = 768
     classifier_head = RobertaClassificationHead(num_classes=num_classes, input_dim=input_dim)
@@ -206,7 +211,8 @@ def main(params):
         xlm_classifier.train()
         train_loader = DataLoader(data['xlm_classifier']['train'], batch_size = 32, shuffle=True, collate_fn=collate_fn)
         for batch in train_loader:
-            output = xlm_classifier(batch[0])
+            input = F.to_tensor(batch[0], padding_value=padding_idx).to(DEVICE)
+            output = xlm_classifier(input)
             loss = criteria(output, batch[1])
             optim.zero_grad()
             loss.backward()
@@ -219,7 +225,8 @@ def main(params):
             correct = 0
             total_loss = 0
             for batch in valid_loader:
-                output = xlm_classifier(batch[0])
+                input = F.to_tensor(batch[0], padding_value=padding_idx).to(DEVICE)
+                output = xlm_classifier(input)
                 loss = criteria(output, batch[1])
                 total_loss += loss.item()
                 _, predicted = torch.max(output, 1)
