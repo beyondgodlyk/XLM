@@ -172,7 +172,7 @@ def load_tst_train_data(params, logger, text_transform):
     # TST train data summary
     logger.info('============ Data summary')
     for data_set, v in data['xlm_classifier'].items():
-        logger.info('{: <18} - {: >5} - {: >10}'.format('XLM Classifier train data', data_set, len(v[data_set])))
+        logger.info('{: <18} - {: >5} - {: >10}'.format('XLM Classifier train data', data_set, len(v)))
 
     return data
 
