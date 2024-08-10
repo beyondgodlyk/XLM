@@ -101,7 +101,7 @@ def check_params(params):
     assert os.path.isdir(params.data_path), params.data_path
 
     # check languages
-    params.langs = ['en']
+    params.langs = list(set([params.src_lang, params.tgt_lang]))
     # assert sorted(params.langs) == params.langs
     params.id2lang = {k: v for k, v in enumerate(sorted(params.langs))}
     params.lang2id = {k: v for v, k in params.id2lang.items()}
