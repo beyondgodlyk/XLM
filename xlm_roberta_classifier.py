@@ -61,6 +61,8 @@ def get_parser():
                         help="Path to the model to be used for evaluation")
     parser.add_argument("--eval_file_path", type=str, default="",
                         help="Path to the file to be evaluated")
+    parser.add_argument("--print_predictions", type=bool_flag, default=False,
+                        help="True if predictions are to be printed")
     return parser
 
 def check_params(params):
@@ -155,15 +157,20 @@ def main(params):
             test_loader = DataLoader(SentenceDataset(reviews, true_labels), batch_size = params.batch_size, shuffle=False, collate_fn=collate_fn)
             total = 0
             correct = 0
+            pred = []
             for batch in test_loader:
                 input = F.to_tensor(batch[0], padding_value=padding_idx).to(DEVICE)
                 output = xlm_classifier(input)
                 target = torch.tensor(batch[1], dtype=torch.long).to(DEVICE)
                 _, predicted = torch.max(output, 1)
+                pred += predicted.tolist()
                 total += len(batch[1])
                 correct += (predicted == target).sum().item()
             accuracy = correct / total
+            if params.print_predictions:
+                print("\n".join([str(p) for p in pred]))
             print(f'Accuracy: {accuracy}')
+
         return
 
     # initialize the experiment
