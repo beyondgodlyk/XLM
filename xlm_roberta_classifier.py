@@ -224,9 +224,5 @@ if __name__ == '__main__':
     parser = get_parser()
     params = parser.parse_args()
 
-    # check parameters
-    assert params.src_lang != '' and params.tgt_lang != '' # and params.src_lang != params.tgt_lang
-    # assert params.output_path and not os.path.isfile(params.output_path)
-
     check_params(params)
     main(params)
