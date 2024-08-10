@@ -53,6 +53,14 @@ def get_parser():
     parser.add_argument("--use_yelp_EN_lowercase", type=bool_flag, default=True,
                         help="True if Yelp EN dataset with lowercased text is used for domain adaptive training")
     
+    parser.add_argument("--train", type=bool_flag, default=False,
+                        help="True if XLM Roberta classifier is to be trained")
+    parser.add_argument("--eval", type=bool_flag, default=True,
+                        help="True if XLM Roberta classifier is to be evaluated")
+    parser.add_argument("--eval_model_path", type=str, default="dumped/xlm_roberta/w1dn1d4ku7/best_model.pt",
+                        help="Path to the model to be used for evaluation")
+    parser.add_argument("--eval_file_path", type=str, default="",
+                        help="Path to the file to be evaluated")
     return parser
 
 def check_params(params):
@@ -124,9 +132,6 @@ def collate_fn(batch):
 
 def main(params):
 
-    # initialize the experiment
-    logger = initialize_exp(params)
-
     padding_idx = 1
     bos_idx = 0
     eos_idx = 2
@@ -139,6 +144,30 @@ def main(params):
     xlm_classifier.to('cuda')
 
     text_transform = XLMR_BASE_ENCODER.transform()
+
+    if params.eval:
+        xlm_classifier.load_state_dict(torch.load(params.eval_model_path))
+        with open(params.eval_file_path, "r", encoding='utf-8') as f:
+            reviews = [text_transform(line.rstrip()) for line in f]
+        true_labels = [0] * len(reviews)/2 + [1] * len(reviews)/2
+        with torch.no_grad():
+            xlm_classifier.eval()
+            test_loader = DataLoader(SentenceDataset(reviews, true_labels), batch_size = params.batch_size, shuffle=False, collate_fn=collate_fn)
+            total = 0
+            correct = 0
+            for batch in test_loader:
+                input = F.to_tensor(batch[0], padding_value=padding_idx).to(DEVICE)
+                output = xlm_classifier(input)
+                target = torch.tensor(batch[1], dtype=torch.long).to(DEVICE)
+                _, predicted = torch.max(output, 1)
+                total += len(batch[1])
+                correct += (predicted == target).sum().item()
+            accuracy = correct / total
+            print(f'Accuracy: {accuracy}')
+        return
+
+    # initialize the experiment
+    logger = initialize_exp(params)
 
     data = load_tst_train_data(params, logger, text_transform)
     learning_rate = 1e-5
