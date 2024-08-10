@@ -15,7 +15,7 @@ from xlm.utils import bool_flag, initialize_exp
 
 from torch.utils.data import Dataset
 from torchtext.models import RobertaClassificationHead, XLMR_BASE_ENCODER
-from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
+from torch.utils.data import DataLoader
 import torchtext.functional as F
 from torch.optim import AdamW
 
