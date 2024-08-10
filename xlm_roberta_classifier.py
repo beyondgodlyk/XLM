@@ -41,70 +41,13 @@ def get_parser():
     parser.add_argument("--dump_path", type=str, default="./dumped/", help="Experiment dump path")
     parser.add_argument("--exp_name", type=str, default="", help="Experiment name")
     parser.add_argument("--exp_id", type=str, default="", help="Experiment ID")
-    parser.add_argument("--save_periodic", type=int, default=0,
-                        help="Save the model periodically (0 to disable)")
+
     # batch parameters
     parser.add_argument("--batch_size", type=int, default=32, help="Number of sentences per batch")
-    parser.add_argument("--max_len", type=int, default=30,
-                        help="Maximum length of sentences (after BPE)")
-    parser.add_argument("--tokens_per_batch", type=int, default=-1,
-                        help="Number of tokens per batch")
-    parser.add_argument("--max_batch_size", type=int, default=0,
-                        help="Maximum number of sentences per batch (used in combination with tokens_per_batch, 0 to disable)")
-    
-    # model parameters
-    parser.add_argument("--gelu_activation", type=bool_flag, default=True,
-                        help="Use a GELU activation instead of ReLU")
-    
-    # output paths
-    parser.add_argument("--output_path", type=str, default="", help="Output path")
-
-    # reload checkpoint
-    parser.add_argument("--reload_checkpoint", type=str, default="",
-                        help="Reload a checkpoint")
-
-    parser.add_argument("--max_vocab", type=int, default=-1, help="Maximum vocabulary size (-1 to disable)")
-    parser.add_argument("--min_count", type=int, default=0, help="Minimum vocabulary count")
 
     # data
     parser.add_argument("--data_path", type=str, default="",
                         help="Data path")
-    parser.add_argument("--src_lang", type=str, default="", help="Source language")
-    parser.add_argument("--tgt_lang", type=str, default="", help="Target language")
-
-    # input sentence noise
-    parser.add_argument("--word_shuffle", type=float, default=0,
-                        help="Randomly shuffle input words (0 to disable)")
-    parser.add_argument("--word_dropout", type=float, default=0,
-                        help="Randomly dropout input words (0 to disable)")
-    parser.add_argument("--word_blank", type=float, default=0,
-                        help="Randomly blank input words (0 to disable)")
-
-    # training parameters
-    parser.add_argument("--optimizer", type=str, default="adam,lr=0.0001",
-                        help="Optimizer (SGD / RMSprop / Adam, etc.)")
-    parser.add_argument("--clip_grad_norm", type=float, default=5,
-                        help="Clip gradients norm (0 to disable)")
-    parser.add_argument("--epoch_size", type=int, default=100000,
-                        help="Epoch size / evaluation frequency (-1 for parallel data size)")
-    parser.add_argument("--max_epoch", type=int, default=100000,
-                        help="Maximum epoch size")
-    parser.add_argument("--stopping_criterion", type=str, default="",
-                        help="Stopping criterion, and number of non-increase before stopping the experiment")
-    parser.add_argument("--validation_metrics", type=str, default="",
-                        help="Validation metrics")
-        
-    # float16 / AMP API
-    parser.add_argument("--amp", type=int, default=-1,
-                        help="Use AMP wrapper for float16 / distributed / gradient accumulation. Level of optimization. -1 to disable.")
-    
-    # memory parameters
-    parser.add_argument("--use_memory", type=bool_flag, default=False,
-                        help="Use an external memory")
-    
-    # debug (required for using load binarized)
-    parser.add_argument("--debug_train", type=bool_flag, default=False,
-                        help="Use valid sets for train sets (faster loading)")
     
     # Datasets for EN
     parser.add_argument("--use_yelp_EN_lowercase", type=bool_flag, default=True,
@@ -183,9 +126,6 @@ def main(params):
 
     # initialize the experiment
     logger = initialize_exp(params)
-    
-    if not os.path.isfile(params.output_path):
-        params.output_path = os.path.join(params.dump_path, "%s-%s.txt" % (params.src_lang, params.tgt_lang))
 
     padding_idx = 1
     bos_idx = 0
