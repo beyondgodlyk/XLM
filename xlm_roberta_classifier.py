@@ -239,15 +239,15 @@ def main(params):
                 total += len(batch[1])
                 correct += (predicted == target).sum().item()
             accuracy = correct / total
-            logger.info(f'Epoch {epoch} - Loss: {total_loss} - Accuracy: {accuracy}')
+            logger.info(f'Epoch {epoch} - Loss: {total_loss/total} - Accuracy: {accuracy}')
             if epoch_for_best_score == -1 or accuracy > max(score_tracker):
                 epoch_for_best_score = epoch
-                torch.save(xlm_classifier.state_dict(), "best_model.pt")
+                torch.save(xlm_classifier.state_dict(), os.path.join(params.dump_path, "best_model.pt"))
                 print(f"Best model saved for epoch {epoch}.")
             score_tracker.append(accuracy)
             if epoch - epoch_for_best_score > 3:
                 break
-        torch.save(xlm_classifier.state_dict(), f"model_{epoch}.pt")
+        torch.save(xlm_classifier.state_dict(), os.path.join(params.dump_path, f"model_{epoch}.pt"))
 
 if __name__ == '__main__':
 
