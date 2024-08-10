@@ -149,7 +149,7 @@ def main(params):
         xlm_classifier.load_state_dict(torch.load(params.eval_model_path))
         with open(params.eval_file_path, "r", encoding='utf-8') as f:
             reviews = [text_transform(line.rstrip()) for line in f]
-        true_labels = [0] * len(reviews)/2 + [1] * len(reviews)/2
+        true_labels = [0] * (len(reviews)//2) + [1] * (len(reviews)//2)
         with torch.no_grad():
             xlm_classifier.eval()
             test_loader = DataLoader(SentenceDataset(reviews, true_labels), batch_size = params.batch_size, shuffle=False, collate_fn=collate_fn)
