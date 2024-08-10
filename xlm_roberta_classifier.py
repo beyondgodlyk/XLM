@@ -243,7 +243,7 @@ def main(params):
             if epoch_for_best_score == -1 or accuracy > max(score_tracker):
                 epoch_for_best_score = epoch
                 torch.save(xlm_classifier.state_dict(), os.path.join(params.dump_path, "best_model.pt"))
-                print(f"Best model saved for epoch {epoch}.")
+                logger.info(f"Best model saved for epoch {epoch}.")
             score_tracker.append(accuracy)
             if epoch - epoch_for_best_score > 3:
                 break
