@@ -61,8 +61,8 @@ def get_parser():
                         help="Path to the model to be used for evaluation")
     parser.add_argument("--eval_file_path", type=str, default="",
                         help="Path to the file to be evaluated")
-    parser.add_argument("--print_predictions", type=bool_flag, default=False,
-                        help="True if predictions are to be printed")
+    parser.add_argument("--print_mismatches", type=bool_flag, default=False,
+                        help="True if mismatches are to be printed")
     return parser
 
 def check_params(params):
@@ -167,8 +167,10 @@ def main(params):
                 total += len(batch[1])
                 correct += (predicted == target).sum().item()
             accuracy = correct / total
-            if params.print_predictions:
-                print("\n".join([str(p) for p in pred]))
+            if params.print_mismatches:
+                for i in range(len(true_labels)):
+                    if true_labels[i] != pred[i]:
+                        print(f"{i}: {true_labels[i]} - {pred[i]}")
             print(f'Accuracy: {accuracy}')
 
         return
