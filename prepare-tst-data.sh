@@ -12,6 +12,7 @@ MONO_PATH=$DATA_PATH/mono
 PROC_PATH=$DATA_PATH/processed/$SRC-$TGT
 TST_PROC_PATH=$PROC_PATH/tst
 YELP_PATH=$PWD/yelp
+YELP_SINGLE_REFERENCE=$YELP_PATH/single_reference
 TST_PATH=$MONO_PATH/$SRC/tst
 
 # Create folders for TST data
@@ -91,19 +92,19 @@ fi
 if ! [[ -f "$TST_SRC_TEST_0_1_0_TOK" ]]; then
   echo "Creating tokenized TST EN data for evaluation..."
   eval "cat $YELP_PATH/sentiment.test.0.detok | $SRC_PREPROCESSING > $TST_SRC_TEST_0_1_0_TOK"
-  eval "cat $YELP_PATH/human.txt.detok | head -n 500 |$SRC_PREPROCESSING > $TST_SRC_TEST_0_1_1_TOK"
+  eval "cat $YELP_SINGLE_REFERENCE/human.txt.detok | head -n 500 |$SRC_PREPROCESSING > $TST_SRC_TEST_0_1_1_TOK"
 
   eval "cat $YELP_PATH/sentiment.test.1.detok | $SRC_PREPROCESSING > $TST_SRC_TEST_1_0_1_TOK"
-  eval "cat $YELP_PATH/human.txt.detok | tail -n 500 |$SRC_PREPROCESSING > $TST_SRC_TEST_1_0_0_TOK"
+  eval "cat $YELP_SINGLE_REFERENCE/human.txt.detok | tail -n 500 |$SRC_PREPROCESSING > $TST_SRC_TEST_1_0_0_TOK"
 fi
 
 if ! [[ -f "$TST_TGT_TEST_0_1_0_TOK" ]]; then
   echo "Creating tokenized TST FR data for evaluation..."
   eval "cat $YELP_PATH/translated.sentiment.test.0.detok | $TGT_PREPROCESSING > $TST_TGT_TEST_0_1_0_TOK"
-  eval "cat $YELP_PATH/translated.human.txt.detok | head -n 500 |$TGT_PREPROCESSING > $TST_TGT_TEST_0_1_1_TOK"
+  eval "cat $YELP_SINGLE_REFERENCE/translated.human.txt.detok | head -n 500 |$TGT_PREPROCESSING > $TST_TGT_TEST_0_1_1_TOK"
 
   eval "cat $YELP_PATH/translated.sentiment.test.1.detok | $TGT_PREPROCESSING > $TST_TGT_TEST_1_0_1_TOK"
-  eval "cat $YELP_PATH/translated.human.txt.detok | tail -n 500 |$TGT_PREPROCESSING > $TST_TGT_TEST_1_0_0_TOK"
+  eval "cat $YELP_SINGLE_REFERENCE/translated.human.txt.detok | tail -n 500 |$TGT_PREPROCESSING > $TST_TGT_TEST_1_0_0_TOK"
 fi
 
 # apply BPE codes
