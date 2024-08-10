@@ -4,21 +4,17 @@ import torch
 import torch.nn.functional as F
 from torch import linalg as LA
 from torch.nn.utils import clip_grad_norm_
-import sacrebleu
 
 from xlm.utils import AttrDict, restore_segmentation
 from xlm.utils import to_cuda
 from xlm.utils import bool_flag, initialize_exp
 from xlm.data.loader import load_binarized, set_dico_parameters
-from xlm.data.dataset import ParallelDataset
 from xlm.data.dictionary import Dictionary
 from xlm.model.transformer import TransformerModel
 from xlm.optim import get_optimizer
 from xlm.evaluation.evaluator import convert_to_text
 
 from tst.tst_dataset import TSTDataset
-from tst.tst_trainer import TSTTrainer
-from tst.tst_evaluator import TSTEvaluator
 from tst.classifier import Classifier
 
 def get_parser():
