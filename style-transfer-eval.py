@@ -103,8 +103,8 @@ def check_params(params):
     # check languages
     params.langs = list(set([params.src_lang, params.tgt_lang]))
     # assert sorted(params.langs) == params.langs
-    params.id2lang = {k: v for k, v in enumerate(sorted(params.langs))}
-    params.lang2id = {k: v for v, k in params.id2lang.items()}
+    # params.id2lang = {k: v for k, v in enumerate(sorted(params.langs))}
+    # params.lang2id = {k: v for v, k in params.id2lang.items()}
     params.n_langs = len(params.langs)
 
     # check datasets
@@ -171,8 +171,9 @@ def reload_models(params):
     decoder = TransformerModel(dae_model_params, dico, is_encoder=False, with_output=True).cuda().eval()
     encoder.load_state_dict(reloaded_dae['encoder'])
     decoder.load_state_dict(reloaded_dae['decoder'])
-    params.src_id = dae_model_params.lang2id[params.src_lang]
-    params.tgt_id = dae_model_params.lang2id[params.tgt_lang]
+    params.lang2id = dae_model_params.lang2id
+    # params.src_id = dae_model_params.lang2id[params.src_lang]
+    # params.tgt_id = dae_model_params.lang2id[params.tgt_lang]
 
     # build classifier
     reloaded_classifier = torch.load(params.classifier_model_path)
@@ -196,9 +197,6 @@ def main(params):
 
     # initialize the experiment
     logger = initialize_exp(params)
-    
-    if not os.path.isfile(params.output_path):
-        params.output_path = os.path.join(params.dump_path, "%s-%s.txt" % (params.src_lang, params.tgt_lang))
 
     dico, encoder, decoder, classifier = reload_models(params)
 
@@ -211,13 +209,13 @@ def main(params):
 
     assert params.batch_size == 1
 
-    for lang in params.langs:
+    for (src_lang, tgt_lang) in [(params.src_lang, params.tgt_lang), (params.tgt_lang, params.src_lang)]:
         outputs = []
         for label_pair in [(0,1), (1,0)]:
-            src_iterator = data['tst'][lang][label_pair][0].get_iterator(shuffle=False, 
+            src_iterator = data['tst'][src_lang][label_pair][0].get_iterator(shuffle=False, 
                                                                         group_by_size=False, 
                                                                         n_sentences=-1)
-            tgt_iterator = data['tst'][lang][label_pair][1].get_iterator(shuffle=False,
+            tgt_iterator = data['tst'][tgt_lang][label_pair][1].get_iterator(shuffle=False,
                                                                         group_by_size=False,
                                                                         n_sentences=-1)
             
@@ -235,8 +233,8 @@ def main(params):
                 logger.info("Gold sentence: %s" % convert_to_text(x2, len2, dico, params)[0])
                 logger.info("")
 
-                langs1 = x1.clone().fill_(params.src_id)
-                langs2 = x2.clone().fill_(params.tgt_id)
+                langs1 = x1.clone().fill_(params.lang2id[src_lang])
+                langs2 = x2.clone().fill_(params.lang2id[tgt_lang])
 
                 x1, len1, langs1, x2, len2, langs2 = to_cuda(x1, len1, langs1, x2, len2, langs2)
 
@@ -302,7 +300,7 @@ def main(params):
                         
                         idx_len = len1.clone()
                         idx_len[0] = torch.tensor([idx])
-                        generated, lengths = decoder.generate(modified_enc1, idx_len, params.tgt_id, max_len = params.max_len + 2)
+                        generated, lengths = decoder.generate(modified_enc1, idx_len, params.lang2id[tgt_lang], max_len = params.max_len + 2)
                         
                         gen = convert_to_text(generated, lengths, dico, params)[0]
                         logger.info("Modified sentence with idx_len: %s" % gen)
@@ -352,7 +350,7 @@ def main(params):
                 
                 outputs.append(output)
         logger.info("Saving outputs to file")
-        output_path = os.path.join(params.dump_path, "outputs.txt")
+        output_path = os.path.join(params.dump_path, "%s-%s.txt" % (src_lang, tgt_lang))
         # export sentences to output file / restore BPE segmentation
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write('\n'.join(outputs) + '\n')
