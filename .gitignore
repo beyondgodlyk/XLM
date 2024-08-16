@@ -127,3 +127,5 @@ dmypy.json
 /tools
 /data
 /dumped
+kenlm/yelp_3_gram_disc_fall.binary
+kenlm/yelp_5_gram_disc_fall.binary
