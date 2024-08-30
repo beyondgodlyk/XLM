@@ -1,3 +1,6 @@
+# Should run the file inside of kenlm directory.
+# Command: python find_ppl.py --file_path ../outputs/0/my-model-yelp1.txt.tok
+
 import kenlm
 import argparse
 import os

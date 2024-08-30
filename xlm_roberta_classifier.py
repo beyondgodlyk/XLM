@@ -1,4 +1,5 @@
 # Taken from https://pytorch.org/text/main/tutorials/sst2_classification_non_distributed.html
+# python xlm_roberta_classifier.py --exp_name xlm_roberta --data_path ./data/mono/en/tst/ --batch_size 32 --eval True --eval_file_path outputs/0/my-model-yelp1.txt.tok
 
 from collections import OrderedDict
 import time
