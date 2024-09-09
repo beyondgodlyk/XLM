@@ -290,7 +290,16 @@ def main(params):
                             if modified_enc1[0][i].min().item() == 0 and modified_enc1[0][i].max().item() == 0:
                                 idx = i
                                 break
+
+                        chk_idx = params.max_len + 2
+                        for i in reversed(range(params.max_len + 2)):
+                            if modified_enc1[0][i].min().item() != 0 or modified_enc1[0][i].max().item() != 0:
+                                chk_idx = i
+                                break
                         
+                        logger.info("idx = %d and chk_idx = %d" % (idx, chk_idx))
+                        assert idx-1 == chk_idx
+
                         # Make sure that padded tensor is unchanged. Check if this is required or is even correct
                         assert torch.all(modified_enc1[1] == enc1[1])
                         
