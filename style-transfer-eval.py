@@ -209,7 +209,7 @@ def main(params):
 
     assert params.batch_size == 1
 
-    for (src_lang, tgt_lang) in [(params.src_lang, params.tgt_lang), (params.tgt_lang, params.src_lang)]:
+    for (src_lang, tgt_lang) in set([(params.src_lang, params.tgt_lang), (params.tgt_lang, params.src_lang)]):
         outputs = []
         for label_pair in [(0,1), (1,0)]:
             src_iterator = data['tst'][src_lang][label_pair][0].get_iterator(shuffle=False, 
