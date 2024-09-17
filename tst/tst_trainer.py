@@ -202,7 +202,6 @@ class TSTTrainer(Trainer):
         enc = enc.transpose(0, 1)
 
         score = self.classifier(enc).squeeze(1)
-        logger.info(score)
         pred = torch.sigmoid(score)
 
         tensor_label = torch.Tensor([label]).repeat(score.size()).cuda()
