@@ -251,9 +251,6 @@ def main(params):
                 
                 output = None
 
-                prev = convert_to_text(x1, len1, dico, params)[0]
-                prev_pred = enc1_pred
-
                 for lr in params.learning_rates:
                     if output is not None:
                         break
@@ -271,8 +268,8 @@ def main(params):
                     opt = get_optimizer([modified_enc1], cur_opt_params)
                     it = 0
                     
-                    # prev = convert_to_text(x1, len1, dico, params)[0]
-                    # prev_pred = enc1_pred
+                    prev = convert_to_text(x1, len1, dico, params)[0]
+                    prev_pred = enc1_pred
 
                     while True:
                         
