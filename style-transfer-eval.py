@@ -325,17 +325,26 @@ def main(params):
                         generated_pred = torch.sigmoid(generated_score)
                         logger.info("Generated Pred: %.10e" % generated_pred[0])
 
-                        if gen != prev:
-                            if (generated_pred[0] > prev_pred) if label_pair[1] == 1 else (generated_pred[0] < prev_pred):
-                                logger.info("Setting modified_enc1 to generated_enc1")
-                                prev = gen
-                                prev_pred = generated_pred[0]
+                        # if gen != prev:
+                        #     if (generated_pred[0] > prev_pred) if label_pair[1] == 1 else (generated_pred[0] < prev_pred):
+                        #         logger.info("Setting modified_enc1 to generated_enc1")
+                        #         prev = gen
+                        #         prev_pred = generated_pred[0]
 
-                                modified_enc1 = generated_enc1.detach().clone()
-                                modified_enc1.requires_grad = True
-                                opt = get_optimizer([modified_enc1], cur_opt_params)
-                            else:
-                                logger.info("Generated sentence has lower score. Continuing")
+                        #         modified_enc1 = generated_enc1.detach().clone()
+                        #         modified_enc1.requires_grad = True
+                        #         opt = get_optimizer([modified_enc1], cur_opt_params)
+                        #     else:
+                        #         logger.info("Generated sentence has lower score. Continuing")
+
+                        if gen != prev:
+                            logger.info("Setting modified_enc1 to generated_enc1 nonetheless")
+                            prev = gen
+                            prev_pred = generated_pred[0]
+
+                            modified_enc1 = generated_enc1.detach().clone()
+                            modified_enc1.requires_grad = True
+                            opt = get_optimizer([modified_enc1], cur_opt_params)
 
                         if torch.all(prev_modified_enc1[0] == modified_enc1[0]) == True:
                             logger.info("Modified encoder output has not changed. Continuing")
