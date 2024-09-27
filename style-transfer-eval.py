@@ -358,7 +358,7 @@ def main(params):
                             logger.info("Breaking since converged")
                             break
 
-                        if it >= 50:
+                        if it >= 200:
                             if lr == params.learning_rates[-1] and output is None:
                                 output = prev
                                 logger.info("Couldn't converge. So setting output to previous best sentence saved")
