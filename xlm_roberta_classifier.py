@@ -1,5 +1,5 @@
 # Taken from https://pytorch.org/text/main/tutorials/sst2_classification_non_distributed.html
-# python xlm_roberta_classifier.py --exp_name xlm_roberta --data_path ./data/mono/en/tst/ --batch_size 32 --eval True --eval_file_path outputs/rohan/outputs_gen_sgd_0.3_opti1.txt
+# python xlm_roberta_classifier.py --exp_name xlm_roberta --data_path ./data/mono/en/tst/ --batch_size 32 --eval True --eval_file_path outputs/rohan/outputs_gen_sgd_0.3_opti1.txt --true_label_format 1-0
 
 from collections import OrderedDict
 import time
