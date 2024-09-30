@@ -1,5 +1,5 @@
 # Taken from https://pytorch.org/text/main/tutorials/sst2_classification_non_distributed.html
-# python xlm_roberta_classifier.py --exp_name xlm_roberta --data_path ./data/mono/en/tst/ --batch_size 32 --eval True --eval_file_path outputs/0/my-model-yelp1.txt.tok
+# python xlm_roberta_classifier.py --exp_name xlm_roberta --data_path ./data/mono/en/tst/ --batch_size 32 --eval True --eval_file_path outputs/rohan/outputs_gen_sgd_0.3_opti1.txt
 
 from collections import OrderedDict
 import time
@@ -64,6 +64,8 @@ def get_parser():
                         help="Path to the file to be evaluated")
     parser.add_argument("--print_mismatches", type=bool_flag, default=False,
                         help="True if mismatches are to be printed")
+    parser.add_argument("--true_label_format", type=str, default="1-0",
+                        help="Format of the true labels")
     return parser
 
 def check_params(params):
@@ -152,7 +154,16 @@ def main(params):
         xlm_classifier.load_state_dict(torch.load(params.eval_model_path))
         with open(params.eval_file_path, "r", encoding='utf-8') as f:
             reviews = [text_transform(line.rstrip()) for line in f]
-        true_labels = [1] * (len(reviews)//2) + [0] * (len(reviews)//2)
+        if params.true_label_format == "0-1":
+            true_labels = [0] * (len(reviews)//2) + [1] * (len(reviews)//2)
+        elif params.true_label_format == "1-0":
+            true_labels = [1] * (len(reviews)//2) + [0] * (len(reviews)//2)
+        elif params.true_label_format == "0":
+            true_labels = [0] * len(reviews)
+        elif params.true_label_format == "1":
+            true_labels = [1] * len(reviews)
+
+        # true_labels = [1] * (len(reviews)//2) + [0] * (len(reviews)//2)
         with torch.no_grad():
             xlm_classifier.eval()
             test_loader = DataLoader(SentenceDataset(reviews, true_labels), batch_size = params.batch_size, shuffle=False, collate_fn=collate_fn)
